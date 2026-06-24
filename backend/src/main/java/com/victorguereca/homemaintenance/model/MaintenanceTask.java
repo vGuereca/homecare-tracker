@@ -58,7 +58,7 @@ public class MaintenanceTask {
     @Column(nullable = false)
     private LocalDateTime updatedDate;
 
-    protected MaintenanceTask(String Name,
+    public MaintenanceTask(String taskName,
                               String category,
                               String description,
                               LocalDate dueDate,

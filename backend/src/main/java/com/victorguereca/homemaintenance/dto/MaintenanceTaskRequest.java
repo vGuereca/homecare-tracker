@@ -20,12 +20,13 @@ public class MaintenanceTaskRequest {
 
     private String description;
 
-    @NotNull(message = "Due date cannot be in the past.")
+    @NotNull(message = "Due date is required.")
+    @FutureOrPresent(message = "Due date cannot be in the past.")
     private LocalDate dueDate;
 
     @NotNull(message = "Estimated cost is required.")
     @DecimalMin(value = "0.00", message = "Estimated cost cannot be negative.")
-    private BigDecimal estimateCost;
+    private BigDecimal estimatedCost;
 
     @NotNull(message = "Urgency level is required.")
     private UrgencyLevel urgencyLevel;
@@ -67,12 +68,12 @@ public class MaintenanceTaskRequest {
         this.dueDate = dueDate;
     }
 
-    public BigDecimal getEstimateCost() {
-        return estimateCost;
+    public BigDecimal getEstimatedCost() {
+        return estimatedCost;
     }
 
-    public void setEstimateCost(BigDecimal estimateCost) {
-        this.estimateCost = estimateCost;
+    public void setEstimatedCost(BigDecimal estimatedCost) {
+        this.estimatedCost = estimatedCost;
     }
 
     public UrgencyLevel getUrgencyLevel() {
