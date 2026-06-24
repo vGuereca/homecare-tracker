@@ -1,18 +1,20 @@
 package com.victorguereca.homemaintenance.service;
 
+import com.victorguereca.homemaintenance.dto.DashboardSummaryResponse;
 import com.victorguereca.homemaintenance.dto.MaintenanceTaskRequest;
 import com.victorguereca.homemaintenance.dto.MaintenanceTaskResponse;
 import com.victorguereca.homemaintenance.exception.ResourceNotFoundException;
 import com.victorguereca.homemaintenance.model.MaintenanceTask;
 import com.victorguereca.homemaintenance.model.TaskStatus;
-import com.victorguereca.homemaintenance.repository.MaintenanceTaskRepository;
-import org.springframework.stereotype.Service;
-
 import com.victorguereca.homemaintenance.model.UrgencyLevel;
+import com.victorguereca.homemaintenance.repository.MaintenanceTaskRepository;
 import com.victorguereca.homemaintenance.specification.MaintenanceTaskSpecification;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -29,6 +31,58 @@ public class MaintenanceTaskService {
                 .stream()
                 .map(MaintenanceTaskResponse::new)
                 .toList();
+    }
+
+    public List<MaintenanceTaskResponse> searchTasks(String keyword,
+                                                     String category,
+                                                     TaskStatus status,
+                                                     UrgencyLevel urgencyLevel,
+                                                     String sortBy) {
+
+        Specification<MaintenanceTask> specification = Specification
+                .where(MaintenanceTaskSpecification.keywordContains(keyword))
+                .and(MaintenanceTaskSpecification.categoryEquals(category))
+                .and(MaintenanceTaskSpecification.statusEquals(status))
+                .and(MaintenanceTaskSpecification.urgencyEquals(urgencyLevel));
+
+        Sort sort = buildSort(sortBy);
+
+        return taskRepository.findAll(specification, sort)
+                .stream()
+                .map(MaintenanceTaskResponse::new)
+                .toList();
+    }
+
+        //Reads all task records and calculates: openTasks, completedTasks, overdueTasks and totalEstimatedCost
+
+    public DashboardSummaryResponse getDashboardSummary() {
+        List<MaintenanceTask> tasks = taskRepository.findAll();
+        LocalDate today = LocalDate.now();
+
+        long openTasks = tasks.stream()
+                .filter(task -> task.getStatus() == TaskStatus.OPEN || task.getStatus() == TaskStatus.IN_PROGRESS)
+                .count();
+
+        long completedTasks = tasks.stream()
+                .filter(task -> task.getStatus() == TaskStatus.COMPLETED)
+                .count();
+
+        long overdueTasks = tasks.stream()
+                .filter(task -> task.getStatus() != TaskStatus.COMPLETED)
+                .filter(task -> task.getDueDate().isBefore(today))
+                .count();
+
+        BigDecimal totalEstimatedOpenCost = tasks.stream()
+                .filter(task -> task.getStatus() == TaskStatus.OPEN || task.getStatus() == TaskStatus.IN_PROGRESS)
+                .map(MaintenanceTask::getEstimatedCost)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new DashboardSummaryResponse(
+                openTasks,
+                completedTasks,
+                overdueTasks,
+                totalEstimatedOpenCost
+        );
     }
 
     public MaintenanceTaskResponse getTaskById(Long id) {
@@ -84,26 +138,6 @@ public class MaintenanceTaskService {
     private MaintenanceTask findTaskOrThrow(Long id) {
         return taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Maintenance task not found with id: " + id));
-    }
-
-    public List<MaintenanceTaskResponse> searchTasks(String keyword,
-                                                     String category,
-                                                     TaskStatus status,
-                                                     UrgencyLevel urgencyLevel,
-                                                     String sortBy) {
-
-        Specification<MaintenanceTask> specification = Specification
-                .where(MaintenanceTaskSpecification.keywordContains(keyword))
-                .and(MaintenanceTaskSpecification.categoryEquals(category))
-                .and(MaintenanceTaskSpecification.statusEquals(status))
-                .and(MaintenanceTaskSpecification.urgencyEquals(urgencyLevel));
-
-        Sort sort = buildSort(sortBy);
-
-        return taskRepository.findAll(specification, sort)
-                .stream()
-                .map(MaintenanceTaskResponse::new)
-                .toList();
     }
 
     private Sort buildSort(String sortBy) {

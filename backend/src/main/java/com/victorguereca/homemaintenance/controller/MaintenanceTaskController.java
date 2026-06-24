@@ -1,14 +1,14 @@
 package com.victorguereca.homemaintenance.controller;
 
+import com.victorguereca.homemaintenance.dto.DashboardSummaryResponse;
 import com.victorguereca.homemaintenance.dto.MaintenanceTaskRequest;
 import com.victorguereca.homemaintenance.dto.MaintenanceTaskResponse;
+import com.victorguereca.homemaintenance.model.TaskStatus;
+import com.victorguereca.homemaintenance.model.UrgencyLevel;
 import com.victorguereca.homemaintenance.service.MaintenanceTaskService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import com.victorguereca.homemaintenance.model.TaskStatus;
-import com.victorguereca.homemaintenance.model.UrgencyLevel;
 
 import java.util.List;
 
@@ -27,7 +27,6 @@ public class MaintenanceTaskController {
         return taskService.getAllTasks();
     }
 
-    //Endpoint creates API GET /api/tasks/search
     @GetMapping("/search")
     public List<MaintenanceTaskResponse> searchTasks(
             @RequestParam(required = false) String keyword,
@@ -37,6 +36,11 @@ public class MaintenanceTaskController {
             @RequestParam(required = false) String sortBy) {
 
         return taskService.searchTasks(keyword, category, status, urgencyLevel, sortBy);
+    }
+
+    @GetMapping("/dashboard")
+    public DashboardSummaryResponse getDashboardSummary() {
+        return taskService.getDashboardSummary();
     }
 
     @GetMapping("/{id}")

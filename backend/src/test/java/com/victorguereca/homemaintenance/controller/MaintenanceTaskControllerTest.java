@@ -108,6 +108,19 @@ class MaintenanceTaskControllerTest {
     }
 
     @Test
+    void dashboardReturnsSummaryMetrics() throws Exception {
+        createTaskThroughApi("Replace HVAC filter", "HVAC", TaskStatus.OPEN, new BigDecimal("25.00"));
+        createTaskThroughApi("Clean dryer vent", "Safety", TaskStatus.IN_PROGRESS, new BigDecimal("40.00"));
+        createTaskThroughApi("Test smoke detectors", "Safety", TaskStatus.COMPLETED, new BigDecimal("15.00"));
+
+        mockMvc.perform(get("/api/tasks/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.openTasks").value(2))
+                .andExpect(jsonPath("$.completedTasks").value(1))
+                .andExpect(jsonPath("$.totalEstimatedOpenCost").value(65.00));
+    }
+
+    @Test
     void createTaskReturnsBadRequestWhenTaskNameIsBlank() throws Exception {
         MaintenanceTaskRequest request = createValidRequest();
         request.setTaskName("");
@@ -133,6 +146,27 @@ class MaintenanceTaskControllerTest {
         MaintenanceTaskRequest request = createValidRequest();
         request.setTaskName(taskName);
         request.setCategory(category);
+        request.setDescription(taskName + " maintenance task description.");
+        request.setNotes("Test notes for " + taskName + ".");
+
+        return mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+    }
+
+    private String createTaskThroughApi(String taskName,
+                                        String category,
+                                        TaskStatus status,
+                                        BigDecimal estimatedCost) throws Exception {
+        MaintenanceTaskRequest request = createValidRequest();
+        request.setTaskName(taskName);
+        request.setCategory(category);
+        request.setStatus(status);
+        request.setEstimatedCost(estimatedCost);
         request.setDescription(taskName + " maintenance task description.");
         request.setNotes("Test notes for " + taskName + ".");
 
