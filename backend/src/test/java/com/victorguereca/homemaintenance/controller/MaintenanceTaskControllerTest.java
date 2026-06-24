@@ -20,16 +20,20 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /*
-These verify -
-Valid task request creates a task
-Invalid user input returns 400 Bad Request
-A Missing task ID returns 404 Not Found
-Validation errors use custom API error format
-API is behaving predictably bor both success and failure paths
+These tests verify:
+- A valid task request creates a task.
+- The API can return multiple task rows.
+- Search returns multiple matching rows.
+- Filtering and sorting can be used together.
+- Invalid user input returns 400 Bad Request.
+- A missing task ID returns 404 Not Found.
+- Validation errors use the custom API error format.
+- The API behaves predictably for both success and failure paths.
  */
 
 @SpringBootTest
@@ -66,6 +70,44 @@ class MaintenanceTaskControllerTest {
     }
 
     @Test
+    void getAllTasksReturnsMultipleRows() throws Exception {
+        createTaskThroughApi("Replace HVAC filter", "HVAC");
+        createTaskThroughApi("Clean gutters", "Exterior");
+
+        mockMvc.perform(get("/api/tasks"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    @Test
+    void searchTasksByKeywordReturnsMultipleMatchingRows() throws Exception {
+        createTaskThroughApi("Replace HVAC filter", "HVAC");
+        createTaskThroughApi("Replace air purifier filter", "Indoor Air");
+        createTaskThroughApi("Clean gutters", "Exterior");
+
+        mockMvc.perform(get("/api/tasks/search")
+                        .param("keyword", "filter"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].taskName").exists())
+                .andExpect(jsonPath("$[1].taskName").exists());
+    }
+
+    @Test
+    void searchTasksCanFilterByStatusAndSortByEstimatedCost() throws Exception {
+        createTaskThroughApi("Clean dryer vent", "Safety");
+        createTaskThroughApi("Inspect plumbing", "Plumbing");
+
+        mockMvc.perform(get("/api/tasks/search")
+                        .param("status", "OPEN")
+                        .param("sortBy", "estimatedCost"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].status").value("OPEN"))
+                .andExpect(jsonPath("$[1].status").value("OPEN"));
+    }
+
+    @Test
     void createTaskReturnsBadRequestWhenTaskNameIsBlank() throws Exception {
         MaintenanceTaskRequest request = createValidRequest();
         request.setTaskName("");
@@ -85,6 +127,22 @@ class MaintenanceTaskControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Resource Not Found"))
                 .andExpect(jsonPath("$.messages[0]", containsString("Maintenance task not found")));
+    }
+
+    private String createTaskThroughApi(String taskName, String category) throws Exception {
+        MaintenanceTaskRequest request = createValidRequest();
+        request.setTaskName(taskName);
+        request.setCategory(category);
+        request.setDescription(taskName + " maintenance task description.");
+        request.setNotes("Test notes for " + taskName + ".");
+
+        return mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
     }
 
     private MaintenanceTaskRequest createValidRequest() {

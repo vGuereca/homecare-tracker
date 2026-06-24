@@ -58,14 +58,18 @@ public class MaintenanceTask {
     @Column(nullable = false)
     private LocalDateTime updatedDate;
 
+    protected MaintenanceTask() {
+        // Required by JPA/Hibernate when reading entity records from the database.
+    }
+
     public MaintenanceTask(String taskName,
-                              String category,
-                              String description,
-                              LocalDate dueDate,
-                              BigDecimal estimatedCost,
-                              UrgencyLevel urgencyLevel,
-                              TaskStatus status,
-                              String notes) {
+                           String category,
+                           String description,
+                           LocalDate dueDate,
+                           BigDecimal estimatedCost,
+                           UrgencyLevel urgencyLevel,
+                           TaskStatus status,
+                           String notes) {
         this.taskName = taskName;
         this.category = category;
         this.description = description;
@@ -77,7 +81,7 @@ public class MaintenanceTask {
     }
 
     @PrePersist
-    protected void onCreate(){
+    protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
         this.createdDate = now;
         this.updatedDate = now;
@@ -143,6 +147,7 @@ public class MaintenanceTask {
     public TaskStatus getStatus() {
         return status;
     }
+
     public void setStatus(TaskStatus status) {
         this.status = status;
     }

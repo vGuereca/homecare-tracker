@@ -7,6 +7,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import com.victorguereca.homemaintenance.model.TaskStatus;
+import com.victorguereca.homemaintenance.model.UrgencyLevel;
+
 import java.util.List;
 
 @RestController
@@ -22,6 +25,18 @@ public class MaintenanceTaskController {
     @GetMapping
     public List<MaintenanceTaskResponse> getAllTasks() {
         return taskService.getAllTasks();
+    }
+
+    //Endpoint creates API GET /api/tasks/search
+    @GetMapping("/search")
+    public List<MaintenanceTaskResponse> searchTasks(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) TaskStatus status,
+            @RequestParam(required = false) UrgencyLevel urgencyLevel,
+            @RequestParam(required = false) String sortBy) {
+
+        return taskService.searchTasks(keyword, category, status, urgencyLevel, sortBy);
     }
 
     @GetMapping("/{id}")

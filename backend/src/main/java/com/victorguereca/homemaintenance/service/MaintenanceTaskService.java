@@ -8,6 +8,11 @@ import com.victorguereca.homemaintenance.model.TaskStatus;
 import com.victorguereca.homemaintenance.repository.MaintenanceTaskRepository;
 import org.springframework.stereotype.Service;
 
+import com.victorguereca.homemaintenance.model.UrgencyLevel;
+import com.victorguereca.homemaintenance.specification.MaintenanceTaskSpecification;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+
 import java.util.List;
 
 @Service
@@ -79,5 +84,41 @@ public class MaintenanceTaskService {
     private MaintenanceTask findTaskOrThrow(Long id) {
         return taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Maintenance task not found with id: " + id));
+    }
+
+    public List<MaintenanceTaskResponse> searchTasks(String keyword,
+                                                     String category,
+                                                     TaskStatus status,
+                                                     UrgencyLevel urgencyLevel,
+                                                     String sortBy) {
+
+        Specification<MaintenanceTask> specification = Specification
+                .where(MaintenanceTaskSpecification.keywordContains(keyword))
+                .and(MaintenanceTaskSpecification.categoryEquals(category))
+                .and(MaintenanceTaskSpecification.statusEquals(status))
+                .and(MaintenanceTaskSpecification.urgencyEquals(urgencyLevel));
+
+        Sort sort = buildSort(sortBy);
+
+        return taskRepository.findAll(specification, sort)
+                .stream()
+                .map(MaintenanceTaskResponse::new)
+                .toList();
+    }
+
+    private Sort buildSort(String sortBy) {
+        if (sortBy == null || sortBy.isBlank()) {
+            return Sort.by(Sort.Direction.ASC, "dueDate");
+        }
+
+        return switch (sortBy) {
+            case "taskName" -> Sort.by(Sort.Direction.ASC, "taskName");
+            case "category" -> Sort.by(Sort.Direction.ASC, "category");
+            case "estimatedCost" -> Sort.by(Sort.Direction.ASC, "estimatedCost");
+            case "urgencyLevel" -> Sort.by(Sort.Direction.ASC, "urgencyLevel");
+            case "status" -> Sort.by(Sort.Direction.ASC, "status");
+            case "dueDate" -> Sort.by(Sort.Direction.ASC, "dueDate");
+            default -> Sort.by(Sort.Direction.ASC, "dueDate");
+        };
     }
 }
