@@ -1,6 +1,7 @@
 package com.victorguereca.homemaintenance.service;
 
 import com.victorguereca.homemaintenance.dto.DashboardSummaryResponse;
+import com.victorguereca.homemaintenance.dto.MaintenanceReportResponse;
 import com.victorguereca.homemaintenance.dto.MaintenanceTaskRequest;
 import com.victorguereca.homemaintenance.dto.MaintenanceTaskResponse;
 import com.victorguereca.homemaintenance.exception.ResourceNotFoundException;
@@ -8,6 +9,8 @@ import com.victorguereca.homemaintenance.model.MaintenanceTask;
 import com.victorguereca.homemaintenance.model.TaskStatus;
 import com.victorguereca.homemaintenance.model.UrgencyLevel;
 import com.victorguereca.homemaintenance.repository.MaintenanceTaskRepository;
+import com.victorguereca.homemaintenance.report.MaintenanceReport;
+import com.victorguereca.homemaintenance.report.MaintenanceTaskReport;
 import com.victorguereca.homemaintenance.specification.MaintenanceTaskSpecification;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -53,8 +56,6 @@ public class MaintenanceTaskService {
                 .toList();
     }
 
-        //Reads all task records and calculates: openTasks, completedTasks, overdueTasks and totalEstimatedCost
-
     public DashboardSummaryResponse getDashboardSummary() {
         List<MaintenanceTask> tasks = taskRepository.findAll();
         LocalDate today = LocalDate.now();
@@ -83,6 +84,14 @@ public class MaintenanceTaskService {
                 overdueTasks,
                 totalEstimatedOpenCost
         );
+    }
+
+    public MaintenanceReportResponse getMaintenanceTaskReport() {
+        List<MaintenanceTask> tasks = taskRepository.findAll(Sort.by(Sort.Direction.ASC, "dueDate"));
+
+        MaintenanceReport report = new MaintenanceTaskReport(tasks);
+
+        return new MaintenanceReportResponse(report);
     }
 
     public MaintenanceTaskResponse getTaskById(Long id) {

@@ -34,6 +34,7 @@ These tests verify:
 - A missing task ID returns 404 Not Found.
 - Validation errors use the custom API error format.
 - The API behaves predictably for both success and failure paths.
+- Dashboard endpoint returns summary metrics
  */
 
 @SpringBootTest
@@ -118,6 +119,25 @@ class MaintenanceTaskControllerTest {
                 .andExpect(jsonPath("$.openTasks").value(2))
                 .andExpect(jsonPath("$.completedTasks").value(1))
                 .andExpect(jsonPath("$.totalEstimatedOpenCost").value(65.00));
+    }
+
+    @Test
+    void reportReturnsTitleTimestampColumnsAndMultipleRows() throws Exception {
+        createTaskThroughApi("Replace HVAC filter", "HVAC");
+        createTaskThroughApi("Clean gutters", "Exterior");
+
+        mockMvc.perform(get("/api/tasks/report"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Home Maintenance Task Report"))
+                .andExpect(jsonPath("$.generatedAt").exists())
+                .andExpect(jsonPath("$.columns", hasSize(6)))
+                .andExpect(jsonPath("$.rows", hasSize(2)))
+                .andExpect(jsonPath("$.rows[0]['Task Name']").exists())
+                .andExpect(jsonPath("$.rows[0]['Category']").exists())
+                .andExpect(jsonPath("$.rows[0]['Due Date']").exists())
+                .andExpect(jsonPath("$.rows[0]['Estimated Cost']").exists())
+                .andExpect(jsonPath("$.rows[0]['Urgency']").exists())
+                .andExpect(jsonPath("$.rows[0]['Status']").exists());
     }
 
     @Test

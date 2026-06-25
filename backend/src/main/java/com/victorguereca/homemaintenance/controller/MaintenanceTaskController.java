@@ -1,6 +1,7 @@
 package com.victorguereca.homemaintenance.controller;
 
 import com.victorguereca.homemaintenance.dto.DashboardSummaryResponse;
+import com.victorguereca.homemaintenance.dto.MaintenanceReportResponse;
 import com.victorguereca.homemaintenance.dto.MaintenanceTaskRequest;
 import com.victorguereca.homemaintenance.dto.MaintenanceTaskResponse;
 import com.victorguereca.homemaintenance.model.TaskStatus;
@@ -41,6 +42,11 @@ public class MaintenanceTaskController {
     @GetMapping("/dashboard")
     public DashboardSummaryResponse getDashboardSummary() {
         return taskService.getDashboardSummary();
+    }
+
+    @GetMapping("/report")
+    public MaintenanceReportResponse getMaintenanceTaskReport() {
+        return taskService.getMaintenanceTaskReport();
     }
 
     @GetMapping("/{id}")
