@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: home-maintenance-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: home_maintenance_db
+      POSTGRES_USER: home_maintenance_user
+      POSTGRES_PASSWORD: home_maintenance_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - home_maintenance_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  home_maintenance_postgres_data:
