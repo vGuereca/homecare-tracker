@@ -2,6 +2,10 @@
 .idea/
 *.iml
 
+node_modules/
+dist/
+data/
+
 # Maven / Java
 target/
 *.class
