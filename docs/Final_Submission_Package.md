@@ -21,7 +21,11 @@ D424 Software Engineering Capstone - Task 3 Development and Testing
 GitLab Repository URL:
 
 ```text
+GitLab Link
 https://gitlab.com/wgu-gitlab-environment/student-repos/vguere1/d424-software-engineering-capstone/-/blob/working_branch/docs/SCREENSHOT_EVIDENCE.MD?ref_type=heads
+
+Panopto Link
+https://wgu.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=8182a813-8836-47ca-88ee-b4880043bed5
 
 
 Application Summary
