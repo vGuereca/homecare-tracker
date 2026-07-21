@@ -1,0 +1,30 @@
+* 00c3e9a (HEAD -> working_branch, origin/working_branch) Add Task 4 cloud deployment documentation
+* 1b871db Add Task 4 cloud deployment evidence screenshots
+* b7cf2df Configure frontend API URL for cloud deployment
+* 60e3f5f Updated Docker port for Lightsail Deployment
+* 7105387 Added task 4 deplyment plan
+* 0e38d0f Added panopto video link to Final_Submission_Package
+* f30734d Added final submission package
+* 69f3762 Add Task 3 screenshot evidence
+* 1647612 "Updated doc files"
+* b1ec63f Updated USER_GUIDE.md
+* 75bfe90 Added final project documentation package
+* 191166d Added security configuration cleanup and notes
+* b9c30ac Dockerize full stack app
+* 3ed4dd4 Added Docker PostgreSQL profile and compose setup
+* bf69701 Added frontend dashboard search filters and report display
+* e841492 Added frontend task edit, complete, and delete actions
+* 85a1c6e Added frontend task creation and task list
+* c4676fb Added React frontend and backend health connection
+* 5f0750c Added maintenance task report endpoint and test
+* f31aac8 Added dashboard summary endpoint and test
+* 8f2d552 Added tas search filtering sorting and testing
+* a6eda40 Added CRUD API error handling nad controller tests
+* 1ab882e Finished adding task  CRUD API foundation and service test
+* e283a47 Starting repository layer, service layer, DTOs, and CRUD API
+* 6e6af67 Added maintenance task entity and database dependencies
+* 8548218 Initialize backend with health endpoint and test
+* 9fc6ffc (origin/main, origin/HEAD, main) Corrected mispelling
+* 808c354 Added Branching instructions to README
+* 5c6cab3 Added WGU Template README.md
+* 835201f Initial commit
