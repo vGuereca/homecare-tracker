@@ -1,29 +1,94 @@
-<strong>**DO NOT DISTRIBUTE OR PUBLICLY POST SOLUTIONS TO THESE LABS. MAKE ALL FORKS OF THIS REPOSITORY WITH SOLUTION CODE PRIVATE. PLEASE REFER TO THE STUDENT CODE OF CONDUCT AND ETHICAL EXPECTATIONS FOR COLLEGE OF INFORMATION TECHNOLOGY STUDENTS FOR SPECIFICS. **</strong>
+# HomeCare Tracker
 
-# WESTERN GOVERNORS UNIVERSITY 
-## D424 – SOFTWARE ENGINEERING CAPSTONE
-Welcome to Software Engineering Capstone! This is an opportunity for students to develop full stack software engineering documentation and applications. They will execute documentation, unit testing, revision of software applications, and deploy software applications with scripts and containers on a cloud platform.
+HomeCare Tracker is a full-stack web application for managing home maintenance tasks, estimated repair costs, urgency levels, due dates, and maintenance reports.
 
-FOR SPECIFIC TASK INSTRUCTIONS AND REQUIREMENTS FOR THIS ASSESSMENT, PLEASE REFER TO THE COURSE PAGE.
-BASIC INSTRUCTIONS
-For this assessment, you will deploy your developed full stack software product to a web service of your choice.
+The project was originally developed as a software engineering capstone and is now being improved as a public portfolio project to demonstrate full-stack development, cloud deployment, authentication, database design, Docker, and future AI-assisted planning features.
 
+## Live Demo
 
-## SUPPLEMENTAL RESOURCES  
-1.	How to clone a project to IntelliJ using Git?
+Deployed application:
 
-> Ensure that you have Git installed on your system and that IntelliJ is installed using [Toolbox](https://www.jetbrains.com/toolbox-app/). Make sure that you are using version 2022.3.2. Once this has been confirmed, click the clone button and use the 'IntelliJ IDEA (HTTPS)' button. This will open IntelliJ with a prompt to clone the proejct. Save it in a safe location for the directory and press clone. IntelliJ will prompt you for your credentials. Enter in your WGU Credentials and the project will be cloned onto your local machine.  
+http://victor-task4-home-maintenance.duckdns.org
 
-2. How to create a branch and start Development?
+Backend health check:
 
-- GitLab method
-> Press the '+' button located near your branch name. In the dropdown list, press the 'New branch' button. This will allow you to create a name for your branch. Once the branch has been named, you can select 'Create Branch' to push the branch to your repository.
+http://victor-task4-home-maintenance.duckdns.org/api/health
 
-- IntelliJ method
-> In IntelliJ, Go to the 'Git' button on the top toolbar. Select the new branch option and create a name for the branch. Make sure checkout branch is selected and press create. You can now add a commit message and push the new branch to the local repo.
+## Current Features
 
-## SUPPORT
-If you need additional support, please navigate to the course page and reach out to your course instructor.
+- Create, view, update, complete, and delete maintenance tasks
+- Track task name, category, description, due date, estimated cost, urgency, status, and notes
+- Search tasks by keyword
+- Filter tasks by category, status, and urgency
+- Sort tasks by due date, estimated cost, urgency, or task name
+- Dashboard summary for open, completed, overdue, and estimated open-cost totals
+- Maintenance report with title, generated timestamp, columns, and task rows
+- REST API built with Java Spring Boot
+- React frontend built with Vite
+- PostgreSQL database in Docker deployment
+- Docker Compose full-stack deployment
+- AWS Lightsail cloud deployment
+- Nginx reverse proxy for same-domain frontend and backend access
 
-## FUTURE USE
-Take this opportunity to create or add to a simple resume portfolio to highlight and showcase your work for future use in career search, experience, and education!
+## Tech Stack
+
+### Frontend
+
+- React
+- Vite
+- JavaScript
+- CSS
+- Nginx
+
+### Backend
+
+- Java
+- Spring Boot
+- Spring Web
+- Spring Data JPA
+- Spring Security configuration
+- JUnit
+- MockMvc
+
+### Database
+
+- PostgreSQL for Docker/cloud deployment
+- H2 for local development/testing
+
+### DevOps and Deployment
+
+- Docker
+- Docker Compose
+- AWS Lightsail
+- GitHub
+- GitLab archive
+- Nginx reverse proxy
+
+## Architecture Overview
+
+The deployed version uses AWS Lightsail with Docker Compose.
+
+User browser  
+→ Nginx frontend container on port 80  
+→ `/api` requests proxied internally to Spring Boot backend  
+→ Backend connects to PostgreSQL through Docker networking  
+
+The evaluator-facing and recruiter-facing app URL does not require a raw IP address or a separate `:8080` backend URL.
+
+## Project Structure
+
+```text
+backend/
+  Spring Boot REST API, service layer, model, repository, tests
+
+frontend/
+  React/Vite frontend and Nginx configuration
+
+deployment/
+  Deployment planning files and deployment scripts
+
+docs/
+  Project documentation, diagrams, testing notes, roadmap, and evidence
+
+docker-compose.yml
+  Full-stack container orchestration
