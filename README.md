@@ -14,6 +14,28 @@ Backend health check:
 
 http://victor-task4-home-maintenance.duckdns.org/api/health
 
+## Screenshots
+
+### Dashboard
+
+![Dashboard](docs/portfolio-screenshots/01-dashboard.png)
+
+### Task List
+
+![Task List](docs/portfolio-screenshots/02-task-list.png)
+
+### Add Task Form
+
+![Add Task Form](docs/portfolio-screenshots/03-add-task-form.png)
+
+### Maintenance Report
+
+![Maintenance Report](docs/portfolio-screenshots/04-maintenance-report.png)
+
+### Mobile View
+
+![Mobile View](docs/portfolio-screenshots/05-mobile-view.png)
+
 ## Current Features
 
 - Create, view, update, complete, and delete maintenance tasks
