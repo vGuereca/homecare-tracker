@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 import java.util.List;
 
 /*
@@ -16,6 +15,20 @@ Catches when user submits invalid task data, blank task names or negative estima
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+@ExceptionHandler(IllegalArgumentException.class)
+public ResponseEntity<ApiErrorResponse> handleIllegalArgumentException(
+        IllegalArgumentException exception) {
+
+    ApiErrorResponse errorResponse = new ApiErrorResponse(
+            HttpStatus.BAD_REQUEST.value(),
+            "Bad Request",
+            java.util.List.of(exception.getMessage())
+    );
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+}
+
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
