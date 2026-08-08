@@ -13,7 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
-import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -55,7 +54,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.lastName").value("Guereca"))
                 .andExpect(jsonPath("$.email").value("victor@example.com"))
                 .andExpect(jsonPath("$.role").value("USER"))
-                .andExpect(jsonPath("$.token").value(nullValue()));
+                .andExpect(jsonPath("$.token").isNotEmpty());
 
         var savedUser = appUserRepository.findByEmailIgnoreCase("victor@example.com")
                 .orElseThrow();
@@ -128,7 +127,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.lastName").value("Guereca"))
                 .andExpect(jsonPath("$.email").value("login@example.com"))
                 .andExpect(jsonPath("$.role").value("USER"))
-                .andExpect(jsonPath("$.token").value(nullValue()));
+                .andExpect(jsonPath("$.token").isNotEmpty());
     }
 
     @Test

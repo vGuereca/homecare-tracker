@@ -1,5 +1,6 @@
 package com.victorguereca.homemaintenance.auth;
 
+import com.victorguereca.homemaintenance.security.JwtService;
 import com.victorguereca.homemaintenance.user.AppUser;
 import com.victorguereca.homemaintenance.user.AppUserRepository;
 import com.victorguereca.homemaintenance.user.UserRole;
@@ -11,11 +12,14 @@ public class AuthService {
 
     private final AppUserRepository appUserRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public AuthService(AppUserRepository appUserRepository,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService) {
         this.appUserRepository = appUserRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -34,8 +38,9 @@ public class AuthService {
         );
 
         AppUser savedUser = appUserRepository.save(user);
+        String token = jwtService.generateToken(savedUser);
 
-        return buildAuthResponse(savedUser, null);
+        return buildAuthResponse(savedUser, token);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -53,7 +58,9 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid email or password.");
         }
 
-        return buildAuthResponse(user, null);
+        String token = jwtService.generateToken(user);
+
+        return buildAuthResponse(user, token);
     }
 
     private AuthResponse buildAuthResponse(AppUser user, String token) {
