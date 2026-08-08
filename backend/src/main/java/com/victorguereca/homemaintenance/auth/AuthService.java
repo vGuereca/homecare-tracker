@@ -35,13 +35,35 @@ public class AuthService {
 
         AppUser savedUser = appUserRepository.save(user);
 
+        return buildAuthResponse(savedUser, null);
+    }
+
+    public AuthResponse login(LoginRequest request) {
+        String normalizedEmail = request.getEmail().trim().toLowerCase();
+
+        AppUser user = appUserRepository.findByEmailIgnoreCase(normalizedEmail)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
+
+        boolean passwordMatches = passwordEncoder.matches(
+                request.getPassword(),
+                user.getPasswordHash()
+        );
+
+        if (!passwordMatches) {
+            throw new IllegalArgumentException("Invalid email or password.");
+        }
+
+        return buildAuthResponse(user, null);
+    }
+
+    private AuthResponse buildAuthResponse(AppUser user, String token) {
         return new AuthResponse(
-                savedUser.getId(),
-                savedUser.getFirstName(),
-                savedUser.getLastName(),
-                savedUser.getEmail(),
-                savedUser.getRole(),
-                null
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getRole(),
+                token
         );
     }
 }
