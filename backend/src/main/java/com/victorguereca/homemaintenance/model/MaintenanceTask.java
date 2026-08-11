@@ -5,6 +5,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import com.victorguereca.homemaintenance.user.AppUser;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -17,6 +18,10 @@ public class MaintenanceTask {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private AppUser owner;
 
     @NotBlank
     @Column(nullable = false)
@@ -166,5 +171,13 @@ public class MaintenanceTask {
 
     public LocalDateTime getUpdatedDate() {
         return updatedDate;
+    }
+
+    public AppUser getOwner() {
+        return owner;
+    }
+
+    public void setOwner(AppUser owner) {
+        this.owner = owner;
     }
 }
