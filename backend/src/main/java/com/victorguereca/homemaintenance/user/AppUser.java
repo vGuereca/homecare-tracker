@@ -7,15 +7,16 @@ import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 @Entity
-@Table (
+@Table(
         name = "app_users",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_app_users_email", columnNames = "email")
         }
 )
-
 public class AppUser {
-    @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank
@@ -46,7 +47,7 @@ public class AppUser {
     private LocalDateTime updatedDate;
 
     protected AppUser() {
-
+        // Required by JPA/Hibernate.
     }
 
     public AppUser(String firstName,
@@ -64,9 +65,20 @@ public class AppUser {
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
+        this.createdDate = now;
+        this.updatedDate = now;
+
+        if (this.role == null) {
+            this.role = UserRole.USER;
+        }
     }
 
-    public Long getID() {
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedDate = LocalDateTime.now();
+    }
+
+    public Long getId() {
         return id;
     }
 

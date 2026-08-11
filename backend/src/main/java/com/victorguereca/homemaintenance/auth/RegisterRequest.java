@@ -5,11 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class RegisterRequest {
+
     @NotBlank(message = "First name is required.")
     private String firstName;
 
     @NotBlank(message = "Last name is required.")
-    private String lastname;
+    private String lastName;
 
     @Email(message = "Email must be valid.")
     @NotBlank(message = "Email is required.")
@@ -20,7 +21,6 @@ public class RegisterRequest {
     private String password;
 
     public RegisterRequest() {
-
     }
 
     public String getFirstName() {
@@ -31,12 +31,12 @@ public class RegisterRequest {
         this.firstName = firstName;
     }
 
-    public String getLastname() {
-        return lastname;
+    public String getLastName() {
+        return lastName;
     }
 
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public String getEmail() {
