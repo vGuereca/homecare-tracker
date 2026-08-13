@@ -24,6 +24,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.victorguereca.homemaintenance.auth.RegisterRequest;
+import com.victorguereca.homemaintenance.user.AppUserRepository;
+import org.springframework.transaction.annotation.Transactional;
+
 /*
 These tests verify:
 - A valid task request creates a task.
@@ -50,9 +54,13 @@ class MaintenanceTaskControllerTest {
     @Autowired
     private MaintenanceTaskRepository taskRepository;
 
+    @Autowired
+    private AppUserRepository appUserRepository;
+
     @BeforeEach
     void setUp() {
         taskRepository.deleteAll();
+        appUserRepository.deleteAll();
     }
 
     @Test
@@ -162,6 +170,88 @@ class MaintenanceTaskControllerTest {
                 .andExpect(jsonPath("$.messages[0]", containsString("Maintenance task not found")));
     }
 
+    @Test
+    void authenticatedUsersOnlySeeTheirOwnTasks() throws Exception {
+        String userAToken = registerAndReturnToken(
+                "User",
+                "A",
+                "usera@example.com",
+                "password123"
+        );
+
+        String userBToken = registerAndReturnToken(
+                "User",
+                "B",
+                "userb@example.com",
+                "password123"
+        );
+
+        createTaskThroughApiWithToken("User A task", "HVAC", userAToken);
+        createTaskThroughApiWithToken("User B task", "Plumbing", userBToken);
+
+        mockMvc.perform(get("/api/tasks")
+                        .header("Authorization", "Bearer " + userAToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].taskName").value("User A task"));
+
+        mockMvc.perform(get("/api/tasks")
+                        .header("Authorization", "Bearer " + userBToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].taskName").value("User B task"));
+    }
+
+    @Test
+    void authenticatedUserCannotAccessAnotherUsersTaskById() throws Exception {
+        String userAToken = registerAndReturnToken(
+                "User",
+                "A",
+                "owner@example.com",
+                "password123"
+        );
+
+        String userBToken = registerAndReturnToken(
+                "User",
+                "B",
+                "other@example.com",
+                "password123"
+        );
+
+        String userATaskJson = createTaskThroughApiWithToken("Private user A task", "HVAC", userAToken);
+
+        Long userATaskId = objectMapper.readTree(userATaskJson)
+                .get("id")
+                .asLong();
+
+        mockMvc.perform(get("/api/tasks/" + userATaskId)
+                        .header("Authorization", "Bearer " + userBToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Transactional
+    void authenticatedTaskCreationSetsTaskOwner() throws Exception {
+        String token = registerAndReturnToken(
+                "Owner",
+                "User",
+                "taskowner@example.com",
+                "password123"
+        );
+
+        String taskJson = createTaskThroughApiWithToken("Owned task", "Electrical", token);
+
+        Long taskId = objectMapper.readTree(taskJson)
+                .get("id")
+                .asLong();
+
+        var savedTask = taskRepository.findById(taskId)
+                .orElseThrow();
+
+        assert savedTask.getOwner() != null;
+        assert savedTask.getOwner().getEmail().equals("taskowner@example.com");
+    }
+
     private String createTaskThroughApi(String taskName, String category) throws Exception {
         MaintenanceTaskRequest request = createValidRequest();
         request.setTaskName(taskName);
@@ -191,6 +281,49 @@ class MaintenanceTaskControllerTest {
         request.setNotes("Test notes for " + taskName + ".");
 
         return mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+    }
+
+    private String registerAndReturnToken(String firstName,
+                                          String lastName,
+                                          String email,
+                                          String password) throws Exception {
+        RegisterRequest request = new RegisterRequest();
+        request.setFirstName(firstName);
+        request.setLastName(lastName);
+        request.setEmail(email);
+        request.setPassword(password);
+
+        String responseJson = mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.token").isNotEmpty())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        return objectMapper.readTree(responseJson)
+                .get("token")
+                .asText();
+    }
+
+    private String createTaskThroughApiWithToken(String taskName,
+                                                 String category,
+                                                 String token) throws Exception {
+        MaintenanceTaskRequest request = createValidRequest();
+        request.setTaskName(taskName);
+        request.setCategory(category);
+        request.setDescription(taskName + " maintenance task description.");
+        request.setNotes("Test notes for " + taskName + ".");
+
+        return mockMvc.perform(post("/api/tasks")
+                        .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
