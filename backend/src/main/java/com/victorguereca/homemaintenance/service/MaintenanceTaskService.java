@@ -12,13 +12,17 @@ import com.victorguereca.homemaintenance.repository.MaintenanceTaskRepository;
 import com.victorguereca.homemaintenance.report.MaintenanceReport;
 import com.victorguereca.homemaintenance.report.MaintenanceTaskReport;
 import com.victorguereca.homemaintenance.specification.MaintenanceTaskSpecification;
+import com.victorguereca.homemaintenance.user.AppUser;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MaintenanceTaskService {
@@ -30,8 +34,13 @@ public class MaintenanceTaskService {
     }
 
     public List<MaintenanceTaskResponse> getAllTasks() {
-        return taskRepository.findAll()
-                .stream()
+        Optional<AppUser> currentUser = getCurrentUser();
+
+        List<MaintenanceTask> tasks = currentUser
+                .map(taskRepository::findByOwner)
+                .orElseGet(taskRepository::findAll);
+
+        return tasks.stream()
                 .map(MaintenanceTaskResponse::new)
                 .toList();
     }
@@ -42,11 +51,17 @@ public class MaintenanceTaskService {
                                                      UrgencyLevel urgencyLevel,
                                                      String sortBy) {
 
+        Optional<AppUser> currentUser = getCurrentUser();
+
         Specification<MaintenanceTask> specification = Specification
                 .where(MaintenanceTaskSpecification.keywordContains(keyword))
                 .and(MaintenanceTaskSpecification.categoryEquals(category))
                 .and(MaintenanceTaskSpecification.statusEquals(status))
                 .and(MaintenanceTaskSpecification.urgencyEquals(urgencyLevel));
+
+        if (currentUser.isPresent()) {
+            specification = specification.and(ownerEquals(currentUser.get()));
+        }
 
         Sort sort = buildSort(sortBy);
 
@@ -57,7 +72,12 @@ public class MaintenanceTaskService {
     }
 
     public DashboardSummaryResponse getDashboardSummary() {
-        List<MaintenanceTask> tasks = taskRepository.findAll();
+        Optional<AppUser> currentUser = getCurrentUser();
+
+        List<MaintenanceTask> tasks = currentUser
+                .map(taskRepository::findByOwner)
+                .orElseGet(taskRepository::findAll);
+
         LocalDate today = LocalDate.now();
 
         long openTasks = tasks.stream()
@@ -87,7 +107,16 @@ public class MaintenanceTaskService {
     }
 
     public MaintenanceReportResponse getMaintenanceTaskReport() {
-        List<MaintenanceTask> tasks = taskRepository.findAll(Sort.by(Sort.Direction.ASC, "dueDate"));
+        Optional<AppUser> currentUser = getCurrentUser();
+
+        List<MaintenanceTask> tasks;
+
+        if (currentUser.isPresent()) {
+            Specification<MaintenanceTask> specification = ownerEquals(currentUser.get());
+            tasks = taskRepository.findAll(specification, Sort.by(Sort.Direction.ASC, "dueDate"));
+        } else {
+            tasks = taskRepository.findAll(Sort.by(Sort.Direction.ASC, "dueDate"));
+        }
 
         MaintenanceReport report = new MaintenanceTaskReport(tasks);
 
@@ -110,6 +139,8 @@ public class MaintenanceTaskService {
                 request.getStatus(),
                 request.getNotes()
         );
+
+        getCurrentUser().ifPresent(task::setOwner);
 
         MaintenanceTask savedTask = taskRepository.save(task);
         return new MaintenanceTaskResponse(savedTask);
@@ -145,8 +176,35 @@ public class MaintenanceTaskService {
     }
 
     private MaintenanceTask findTaskOrThrow(Long id) {
+        Optional<AppUser> currentUser = getCurrentUser();
+
+        if (currentUser.isPresent()) {
+            return taskRepository.findByIdAndOwner(id, currentUser.get())
+                    .orElseThrow(() -> new ResourceNotFoundException("Maintenance task not found with id: " + id));
+        }
+
         return taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Maintenance task not found with id: " + id));
+    }
+
+    private Optional<AppUser> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return Optional.empty();
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof AppUser appUser) {
+            return Optional.of(appUser);
+        }
+
+        return Optional.empty();
+    }
+
+    private Specification<MaintenanceTask> ownerEquals(AppUser owner) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("owner"), owner);
     }
 
     private Sort buildSort(String sortBy) {

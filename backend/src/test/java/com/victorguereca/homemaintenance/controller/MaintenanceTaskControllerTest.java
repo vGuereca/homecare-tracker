@@ -1,10 +1,11 @@
 package com.victorguereca.homemaintenance.controller;
 
-import tools.jackson.databind.ObjectMapper;
+import com.victorguereca.homemaintenance.auth.RegisterRequest;
 import com.victorguereca.homemaintenance.dto.MaintenanceTaskRequest;
 import com.victorguereca.homemaintenance.model.TaskStatus;
 import com.victorguereca.homemaintenance.model.UrgencyLevel;
 import com.victorguereca.homemaintenance.repository.MaintenanceTaskRepository;
+import com.victorguereca.homemaintenance.user.AppUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,15 +29,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /*
 These tests verify:
-- A valid task request creates a task.
-- The API can return multiple task rows.
-- Search returns multiple matching rows.
+- Authenticated users can create maintenance tasks.
+- Authenticated users can retrieve their own task rows.
+- Search returns matching rows for the authenticated user.
 - Filtering and sorting can be used together.
 - Invalid user input returns 400 Bad Request.
 - A missing task ID returns 404 Not Found.
 - Validation errors use the custom API error format.
-- The API behaves predictably for both success and failure paths.
-- Dashboard endpoint returns summary metrics
+- Dashboard endpoint returns summary metrics for the authenticated user.
+- Authenticated users only access their own maintenance tasks.
+- Unauthenticated task requests are rejected.
  */
 
 @SpringBootTest
@@ -50,9 +54,22 @@ class MaintenanceTaskControllerTest {
     @Autowired
     private MaintenanceTaskRepository taskRepository;
 
+    @Autowired
+    private AppUserRepository appUserRepository;
+
+    private String authToken;
+
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         taskRepository.deleteAll();
+        appUserRepository.deleteAll();
+
+        authToken = registerAndReturnToken(
+                "Test",
+                "User",
+                "testuser@example.com",
+                "password123"
+        );
     }
 
     @Test
@@ -60,6 +77,7 @@ class MaintenanceTaskControllerTest {
         MaintenanceTaskRequest request = createValidRequest();
 
         mockMvc.perform(post("/api/tasks")
+                        .header("Authorization", "Bearer " + authToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -75,7 +93,8 @@ class MaintenanceTaskControllerTest {
         createTaskThroughApi("Replace HVAC filter", "HVAC");
         createTaskThroughApi("Clean gutters", "Exterior");
 
-        mockMvc.perform(get("/api/tasks"))
+        mockMvc.perform(get("/api/tasks")
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)));
     }
@@ -87,6 +106,7 @@ class MaintenanceTaskControllerTest {
         createTaskThroughApi("Clean gutters", "Exterior");
 
         mockMvc.perform(get("/api/tasks/search")
+                        .header("Authorization", "Bearer " + authToken)
                         .param("keyword", "filter"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
@@ -100,6 +120,7 @@ class MaintenanceTaskControllerTest {
         createTaskThroughApi("Inspect plumbing", "Plumbing");
 
         mockMvc.perform(get("/api/tasks/search")
+                        .header("Authorization", "Bearer " + authToken)
                         .param("status", "OPEN")
                         .param("sortBy", "estimatedCost"))
                 .andExpect(status().isOk())
@@ -114,7 +135,8 @@ class MaintenanceTaskControllerTest {
         createTaskThroughApi("Clean dryer vent", "Safety", TaskStatus.IN_PROGRESS, new BigDecimal("40.00"));
         createTaskThroughApi("Test smoke detectors", "Safety", TaskStatus.COMPLETED, new BigDecimal("15.00"));
 
-        mockMvc.perform(get("/api/tasks/dashboard"))
+        mockMvc.perform(get("/api/tasks/dashboard")
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.openTasks").value(2))
                 .andExpect(jsonPath("$.completedTasks").value(1))
@@ -126,7 +148,8 @@ class MaintenanceTaskControllerTest {
         createTaskThroughApi("Replace HVAC filter", "HVAC");
         createTaskThroughApi("Clean gutters", "Exterior");
 
-        mockMvc.perform(get("/api/tasks/report"))
+        mockMvc.perform(get("/api/tasks/report")
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Home Maintenance Task Report"))
                 .andExpect(jsonPath("$.generatedAt").exists())
@@ -146,6 +169,7 @@ class MaintenanceTaskControllerTest {
         request.setTaskName("");
 
         mockMvc.perform(post("/api/tasks")
+                        .header("Authorization", "Bearer " + authToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -156,26 +180,103 @@ class MaintenanceTaskControllerTest {
 
     @Test
     void deleteTaskReturnsNotFoundWhenTaskDoesNotExist() throws Exception {
-        mockMvc.perform(delete("/api/tasks/999"))
+        mockMvc.perform(delete("/api/tasks/999")
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Resource Not Found"))
                 .andExpect(jsonPath("$.messages[0]", containsString("Maintenance task not found")));
     }
 
-    private String createTaskThroughApi(String taskName, String category) throws Exception {
-        MaintenanceTaskRequest request = createValidRequest();
-        request.setTaskName(taskName);
-        request.setCategory(category);
-        request.setDescription(taskName + " maintenance task description.");
-        request.setNotes("Test notes for " + taskName + ".");
+    @Test
+    void unauthenticatedTaskRequestReturnsForbidden() throws Exception {
+        mockMvc.perform(get("/api/tasks"))
+                .andExpect(status().isForbidden());
+    }
 
-        return mockMvc.perform(post("/api/tasks")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+    @Test
+    void authenticatedUsersOnlySeeTheirOwnTasks() throws Exception {
+        String userAToken = registerAndReturnToken(
+                "User",
+                "A",
+                "usera@example.com",
+                "password123"
+        );
+
+        String userBToken = registerAndReturnToken(
+                "User",
+                "B",
+                "userb@example.com",
+                "password123"
+        );
+
+        createTaskThroughApiWithToken("User A task", "HVAC", userAToken);
+        createTaskThroughApiWithToken("User B task", "Plumbing", userBToken);
+
+        mockMvc.perform(get("/api/tasks")
+                        .header("Authorization", "Bearer " + userAToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].taskName").value("User A task"));
+
+        mockMvc.perform(get("/api/tasks")
+                        .header("Authorization", "Bearer " + userBToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].taskName").value("User B task"));
+    }
+
+    @Test
+    void authenticatedUserCannotAccessAnotherUsersTaskById() throws Exception {
+        String userAToken = registerAndReturnToken(
+                "User",
+                "A",
+                "owner@example.com",
+                "password123"
+        );
+
+        String userBToken = registerAndReturnToken(
+                "User",
+                "B",
+                "other@example.com",
+                "password123"
+        );
+
+        String userATaskJson = createTaskThroughApiWithToken("Private user A task", "HVAC", userAToken);
+
+        Long userATaskId = objectMapper.readTree(userATaskJson)
+                .get("id")
+                .asLong();
+
+        mockMvc.perform(get("/api/tasks/" + userATaskId)
+                        .header("Authorization", "Bearer " + userBToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Transactional
+    void authenticatedTaskCreationSetsTaskOwner() throws Exception {
+        String token = registerAndReturnToken(
+                "Owner",
+                "User",
+                "taskowner@example.com",
+                "password123"
+        );
+
+        String taskJson = createTaskThroughApiWithToken("Owned task", "Electrical", token);
+
+        Long taskId = objectMapper.readTree(taskJson)
+                .get("id")
+                .asLong();
+
+        var savedTask = taskRepository.findById(taskId)
+                .orElseThrow();
+
+        assert savedTask.getOwner() != null;
+        assert savedTask.getOwner().getEmail().equals("taskowner@example.com");
+    }
+
+    private String createTaskThroughApi(String taskName, String category) throws Exception {
+        return createTaskThroughApiWithToken(taskName, category, authToken);
     }
 
     private String createTaskThroughApi(String taskName,
@@ -191,6 +292,50 @@ class MaintenanceTaskControllerTest {
         request.setNotes("Test notes for " + taskName + ".");
 
         return mockMvc.perform(post("/api/tasks")
+                        .header("Authorization", "Bearer " + authToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+    }
+
+    private String registerAndReturnToken(String firstName,
+                                          String lastName,
+                                          String email,
+                                          String password) throws Exception {
+        RegisterRequest request = new RegisterRequest();
+        request.setFirstName(firstName);
+        request.setLastName(lastName);
+        request.setEmail(email);
+        request.setPassword(password);
+
+        String responseJson = mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.token").isNotEmpty())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        return objectMapper.readTree(responseJson)
+                .get("token")
+                .asText();
+    }
+
+    private String createTaskThroughApiWithToken(String taskName,
+                                                 String category,
+                                                 String token) throws Exception {
+        MaintenanceTaskRequest request = createValidRequest();
+        request.setTaskName(taskName);
+        request.setCategory(category);
+        request.setDescription(taskName + " maintenance task description.");
+        request.setNotes("Test notes for " + taskName + ".");
+
+        return mockMvc.perform(post("/api/tasks")
+                        .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
