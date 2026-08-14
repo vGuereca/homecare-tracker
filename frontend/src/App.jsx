@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? 'http://localhost:8080' : '');
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import { apiRequest } from './services/apiClient';
+import { getCurrentUser, logoutUser } from './services/authService';
 
 const initialTaskForm = {
   taskName: '',
@@ -22,6 +24,9 @@ const initialSearchForm = {
 };
 
 function App() {
+  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+  const [authView, setAuthView] = useState('login');
+
   const [healthStatus, setHealthStatus] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [dashboardSummary, setDashboardSummary] = useState(null);
@@ -41,21 +46,50 @@ function App() {
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
+    if (!currentUser) {
+      return;
+    }
+
     fetchHealthStatus();
     fetchTasks();
     fetchDashboardSummary();
     fetchMaintenanceReport();
-  }, []);
+  }, [currentUser]);
+
+  function handleAuthSuccess(authResponse) {
+    setCurrentUser({
+      userId: authResponse.userId,
+      firstName: authResponse.firstName,
+      lastName: authResponse.lastName,
+      email: authResponse.email,
+      role: authResponse.role
+    });
+
+    setErrorMessage('');
+    setSuccessMessage('Signed in successfully.');
+  }
+
+  function handleLogout() {
+    logoutUser();
+    setCurrentUser(null);
+    setAuthView('login');
+
+    setHealthStatus(null);
+    setTasks([]);
+    setDashboardSummary(null);
+    setMaintenanceReport(null);
+    setTaskForm(initialTaskForm);
+    setSearchForm(initialSearchForm);
+    setEditingTaskId(null);
+
+    setErrorMessage('');
+    setSuccessMessage('');
+  }
 
   async function fetchHealthStatus() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/health`);
-
-      if (!response.ok) {
-        throw new Error('Backend health check request failed.');
-      }
-
-      const data = await response.json();
+      setLoadingHealth(true);
+      const data = await apiRequest('/api/health');
       setHealthStatus(data);
     } catch (error) {
       setErrorMessage(
@@ -69,14 +103,7 @@ function App() {
   async function fetchTasks() {
     try {
       setLoadingTasks(true);
-
-      const response = await fetch(`${API_BASE_URL}/api/tasks`);
-
-      if (!response.ok) {
-        throw new Error('Task list request failed.');
-      }
-
-      const data = await response.json();
+      const data = await apiRequest('/api/tasks');
       setTasks(data);
     } catch (error) {
       setErrorMessage('Unable to load maintenance tasks from the backend.');
@@ -88,14 +115,7 @@ function App() {
   async function fetchDashboardSummary() {
     try {
       setLoadingDashboard(true);
-
-      const response = await fetch(`${API_BASE_URL}/api/tasks/dashboard`);
-
-      if (!response.ok) {
-        throw new Error('Dashboard request failed.');
-      }
-
-      const data = await response.json();
+      const data = await apiRequest('/api/tasks/dashboard');
       setDashboardSummary(data);
     } catch (error) {
       setErrorMessage('Unable to load dashboard summary from the backend.');
@@ -107,14 +127,7 @@ function App() {
   async function fetchMaintenanceReport() {
     try {
       setLoadingReport(true);
-
-      const response = await fetch(`${API_BASE_URL}/api/tasks/report`);
-
-      if (!response.ok) {
-        throw new Error('Report request failed.');
-      }
-
-      const data = await response.json();
+      const data = await apiRequest('/api/tasks/report');
       setMaintenanceReport(data);
     } catch (error) {
       setErrorMessage('Unable to load maintenance report from the backend.');
@@ -154,7 +167,7 @@ function App() {
     };
   }
 
-  function buildSearchUrl() {
+  function buildSearchPath() {
     const searchParams = new URLSearchParams();
 
     Object.entries(searchForm).forEach(([key, value]) => {
@@ -163,7 +176,7 @@ function App() {
       }
     });
 
-    return `${API_BASE_URL}/api/tasks/search?${searchParams.toString()}`;
+    return `/api/tasks/search?${searchParams.toString()}`;
   }
 
   async function handleSearchTasks(event) {
@@ -174,14 +187,7 @@ function App() {
 
     try {
       setLoadingTasks(true);
-
-      const response = await fetch(buildSearchUrl());
-
-      if (!response.ok) {
-        throw new Error('Search request failed.');
-      }
-
-      const data = await response.json();
+      const data = await apiRequest(buildSearchPath());
       setTasks(data);
       setSuccessMessage('Task search completed successfully.');
     } catch (error) {
@@ -214,17 +220,10 @@ function App() {
     setSubmittingTask(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/tasks`, {
+      await apiRequest('/api/tasks', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify(buildTaskRequestBody())
       });
-
-      if (!response.ok) {
-        throw new Error('Create task request failed.');
-      }
 
       resetForm();
       setSuccessMessage('Maintenance task created successfully.');
@@ -244,17 +243,10 @@ function App() {
     setSubmittingTask(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/tasks/${editingTaskId}`, {
+      await apiRequest(`/api/tasks/${editingTaskId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify(buildTaskRequestBody())
       });
-
-      if (!response.ok) {
-        throw new Error('Update task request failed.');
-      }
 
       resetForm();
       setSuccessMessage('Maintenance task updated successfully.');
@@ -273,13 +265,9 @@ function App() {
     setSuccessMessage('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/complete`, {
+      await apiRequest(`/api/tasks/${taskId}/complete`, {
         method: 'PATCH'
       });
-
-      if (!response.ok) {
-        throw new Error('Complete task request failed.');
-      }
 
       setSuccessMessage('Maintenance task marked as completed.');
       await refreshAllTaskData();
@@ -301,13 +289,9 @@ function App() {
     setSuccessMessage('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
+      await apiRequest(`/api/tasks/${taskId}`, {
         method: 'DELETE'
       });
-
-      if (!response.ok) {
-        throw new Error('Delete task request failed.');
-      }
 
       if (editingTaskId === taskId) {
         resetForm();
@@ -343,15 +327,38 @@ function App() {
     setEditingTaskId(null);
   }
 
+  if (!currentUser) {
+    return authView === 'login' ? (
+        <LoginPage
+            onLogin={handleAuthSuccess}
+            onSwitchToRegister={() => setAuthView('register')}
+        />
+    ) : (
+        <RegisterPage
+            onRegister={handleAuthSuccess}
+            onSwitchToLogin={() => setAuthView('login')}
+        />
+    );
+  }
+
   return (
       <main className="app-container">
         <section className="page-header">
-          <p className="eyebrow">WGU D424 Capstone</p>
-          <h1>Home Maintenance Tracker</h1>
+          <p className="eyebrow">Portfolio Project</p>
+          <h1>HomeCare Tracker</h1>
           <p className="hero-description">
             Track home maintenance tasks, prioritize urgent repairs, estimate costs,
             and review dashboard summaries from one full-stack application.
           </p>
+
+          <div className="button-row">
+            <p>
+              Signed in as <strong>{currentUser.firstName} {currentUser.lastName}</strong> ({currentUser.email})
+            </p>
+            <button type="button" className="secondary-button" onClick={handleLogout}>
+              Log out
+            </button>
+          </div>
         </section>
 
         <section className="status-panel card">
