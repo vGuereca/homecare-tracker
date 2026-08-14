@@ -1,10 +1,11 @@
 package com.victorguereca.homemaintenance.controller;
 
-import tools.jackson.databind.ObjectMapper;
+import com.victorguereca.homemaintenance.auth.RegisterRequest;
 import com.victorguereca.homemaintenance.dto.MaintenanceTaskRequest;
 import com.victorguereca.homemaintenance.model.TaskStatus;
 import com.victorguereca.homemaintenance.model.UrgencyLevel;
 import com.victorguereca.homemaintenance.repository.MaintenanceTaskRepository;
+import com.victorguereca.homemaintenance.user.AppUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,10 +27,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.victorguereca.homemaintenance.auth.RegisterRequest;
-import com.victorguereca.homemaintenance.user.AppUserRepository;
-import org.springframework.transaction.annotation.Transactional;
-
 /*
 These tests verify:
 - A valid task request creates a task.
@@ -38,7 +37,8 @@ These tests verify:
 - A missing task ID returns 404 Not Found.
 - Validation errors use the custom API error format.
 - The API behaves predictably for both success and failure paths.
-- Dashboard endpoint returns summary metrics
+- Dashboard endpoint returns summary metrics.
+- Authenticated users only access their own maintenance tasks.
  */
 
 @SpringBootTest
