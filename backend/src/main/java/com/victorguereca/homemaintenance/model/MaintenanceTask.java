@@ -11,9 +11,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+
 @Entity
 @Table(name = "maintenance_tasks")
 public class MaintenanceTask {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -180,4 +182,5 @@ public class MaintenanceTask {
     public void setOwner(AppUser owner) {
         this.owner = owner;
     }
+
 }
