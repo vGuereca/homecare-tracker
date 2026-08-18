@@ -333,6 +333,21 @@ cd frontend
 npm run build
 ```
 
+## Continuous Integration
+
+This project uses GitHub Actions to automatically validate the application when changes are pushed
+to `main` or submitted through a pull request.
+
+The CI workflow runs two jobs:
+
+- **Backend Tests**: Sets up Java 17 and runs the Spring Boot test suite with Maven.
+- **Frontend Build**: Sets up Node.js, installs frontend dependencies, and verifies the React/Vite 
+- production build.
+
+This helps confirm that backend logic, authentication behavior, API tests, and frontend build output
+remain stable as the project continues to improve.
+
+
 ## Portfolio Improvement Roadmap
 
 Completed improvements:
