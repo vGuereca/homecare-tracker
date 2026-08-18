@@ -18,21 +18,27 @@ http://victor-task4-home-maintenance.duckdns.org/api/health
 
 ## Screenshots
 
-### Dashboard
+## Screenshots
 
-![Dashboard](docs/portfolio-screenshots/01-dashboard.png)
+### Login Page
 
-### Task List
+![Login Page](docs/portfolio-screenshots/01-login-page.png)
 
-![Task List](docs/portfolio-screenshots/02-task-list.png)
+### Register Page
 
-### Add Task Form
+![Register Page](docs/portfolio-screenshots/02-register-page.png)
 
-![Add Task Form](docs/portfolio-screenshots/03-add-task-form.png)
+### Authenticated Dashboard
+
+![Authenticated Dashboard](docs/portfolio-screenshots/03-authenticated-dashboard.png)
+
+### User-Specific Task List
+
+![User-Specific Task List](docs/portfolio-screenshots/04-user-specific-task-list.png)
 
 ### Maintenance Report
 
-![Maintenance Report](docs/portfolio-screenshots/04-maintenance-report.png)
+![Maintenance Report](docs/portfolio-screenshots/05-maintenance-report.png)
 
 ### Mobile View
 
