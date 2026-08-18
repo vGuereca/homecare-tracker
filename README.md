@@ -1,5 +1,8 @@
 # HomeCare Tracker
 
+![HomeCare Tracker CI](https://github.com/vGuereca/homecare-tracker/actions/workflows/ci.yml/badge.svg)
+
+
 HomeCare Tracker is a full-stack web application for managing home maintenance tasks, estimated repair costs, urgency levels, due dates, maintenance reports, and user-specific task data.
 
 The project was originally developed as a software engineering capstone and is now being improved as a public portfolio project to demonstrate full-stack development, secure authentication, REST API design, database relationships, Docker, cloud deployment, and long-term product improvement.
