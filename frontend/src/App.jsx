@@ -35,6 +35,7 @@ function App() {
   const [taskForm, setTaskForm] = useState(initialTaskForm);
   const [searchForm, setSearchForm] = useState(initialSearchForm);
   const [editingTaskId, setEditingTaskId] = useState(null);
+  const [activePanel, setActivePanel] = useState('tasks');
 
 
   const [loadingTasks, setLoadingTasks] = useState(true);
@@ -79,6 +80,7 @@ function App() {
     setTaskForm(initialTaskForm);
     setSearchForm(initialSearchForm);
     setEditingTaskId(null);
+    setActivePanel('tasks');
 
     setErrorMessage('');
     setSuccessMessage('');
@@ -173,6 +175,7 @@ function App() {
 
   async function handleClearSearch() {
     setSearchForm(initialSearchForm);
+    setActivePanel('tasks');
     setErrorMessage('');
     setSuccessMessage('');
     await fetchTasks();
@@ -200,6 +203,7 @@ function App() {
       });
 
       resetForm();
+      setActivePanel('tasks');
       setSuccessMessage('Maintenance task created successfully.');
       await refreshAllTaskData();
     } catch (error) {
@@ -223,6 +227,7 @@ function App() {
       });
 
       resetForm();
+      setActivePanel('tasks');
       setSuccessMessage('Maintenance task updated successfully.');
       await refreshAllTaskData();
     } catch (error) {
@@ -291,14 +296,35 @@ function App() {
       notes: task.notes || ''
     });
 
+    setActivePanel('add');
+
     setErrorMessage('');
     setSuccessMessage('Editing selected maintenance task.');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function resetForm() {
     setTaskForm(initialTaskForm);
     setEditingTaskId(null);
+  }
+
+  function openAddTaskPanel() {
+    resetForm();
+    setActivePanel('add');
+    setErrorMessage('');
+    setSuccessMessage('');
+  }
+
+  function openFilterPanel() {
+    setActivePanel('filter');
+    setErrorMessage('');
+    setSuccessMessage('');
+  }
+
+  function closeActivePanel() {
+    resetForm();
+    setActivePanel('tasks');
+    setErrorMessage('');
+    setSuccessMessage('');
   }
 
   if (!currentUser) {
@@ -411,279 +437,307 @@ function App() {
             )}
           </section>
 
-          <section className="card task-editor-card">
-            <div className="section-header refined-section-header">
+
+          <section className="card task-list-card">
+            <div className="section-header refined-section-header task-list-header">
               <div>
-                <p className="section-kicker">{editingTaskId ? 'Update task' : 'New task'}</p>
-                <h2>{editingTaskId ? 'Edit Maintenance Task' : 'Add Maintenance Task'}</h2>
+                <p className="section-kicker">Task list</p>
+                <h2>Maintenance Tasks</h2>
                 <p className="section-description">
-                  Capture the work, priority, due date, and estimated cost in a structured maintenance record.
+                  Review what needs attention, then add, filter, edit, complete, or remove tasks from one focused workspace.
                 </p>
               </div>
 
-              {editingTaskId && (
-                  <span className="edit-mode-pill">Editing selected task</span>
-              )}
-            </div>
-
-            <form className="task-form refined-task-form" onSubmit={handleSubmitTask}>
-              <div className="form-section">
-                <div className="form-section-heading">
-                  <span>01</span>
-                  <div>
-                    <h3>Task details</h3>
-                    <p>Name the maintenance item and assign it to a category.</p>
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <label>
-                    Task Name <span className="required-marker">Required</span>
-                    <input
-                        type="text"
-                        name="taskName"
-                        value={taskForm.taskName}
-                        onChange={handleInputChange}
-                        placeholder="Replace HVAC filter"
-                        required
-                    />
-                  </label>
-
-                  <label>
-                    Category <span className="required-marker">Required</span>
-                    <input
-                        type="text"
-                        name="category"
-                        value={taskForm.category}
-                        onChange={handleInputChange}
-                        placeholder="HVAC, Plumbing, Electrical"
-                        required
-                    />
-                  </label>
-                </div>
-
-                <label>
-                  Description
-                  <textarea
-                      name="description"
-                      value={taskForm.description}
-                      onChange={handleInputChange}
-                      rows="3"
-                      placeholder="Add context about what needs to be inspected, repaired, or replaced."
-                  />
-                </label>
-              </div>
-
-              <div className="form-section">
-                <div className="form-section-heading">
-                  <span>02</span>
-                  <div>
-                    <h3>Schedule and priority</h3>
-                    <p>Set timing, estimated cost, urgency, and current status.</p>
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <label>
-                    Due Date <span className="required-marker">Required</span>
-                    <input
-                        type="date"
-                        name="dueDate"
-                        value={taskForm.dueDate}
-                        onChange={handleInputChange}
-                        required
-                    />
-                  </label>
-
-                  <label>
-                    Estimated Cost <span className="required-marker">Required</span>
-                    <input
-                        type="number"
-                        name="estimatedCost"
-                        value={taskForm.estimatedCost}
-                        onChange={handleInputChange}
-                        min="0"
-                        step="0.01"
-                        placeholder="150.00"
-                        required
-                    />
-                  </label>
-                </div>
-
-                <div className="form-row">
-                  <label>
-                    Urgency
-                    <select
-                        name="urgencyLevel"
-                        value={taskForm.urgencyLevel}
-                        onChange={handleInputChange}
-                    >
-                      <option value="LOW">Low</option>
-                      <option value="MEDIUM">Medium</option>
-                      <option value="HIGH">High</option>
-                    </select>
-                  </label>
-
-                  <label>
-                    Status
-                    <select
-                        name="status"
-                        value={taskForm.status}
-                        onChange={handleInputChange}
-                    >
-                      <option value="OPEN">Open</option>
-                      <option value="IN_PROGRESS">In Progress</option>
-                      <option value="COMPLETED">Completed</option>
-                    </select>
-                  </label>
-                </div>
-              </div>
-
-              <div className="form-section">
-                <div className="form-section-heading">
-                  <span>03</span>
-                  <div>
-                    <h3>Notes</h3>
-                    <p>Add optional details for future reference.</p>
-                  </div>
-                </div>
-
-                <label>
-                  Notes
-                  <textarea
-                      name="notes"
-                      value={taskForm.notes}
-                      onChange={handleInputChange}
-                      rows="2"
-                      placeholder="Add warranty details, parts needed, contractor notes, or inspection reminders."
-                  />
-                </label>
-              </div>
-
-              <div className="form-action-bar">
-                <button type="submit" disabled={submittingTask}>
-                  {submittingTask
-                      ? 'Saving Task...'
-                      : editingTaskId
-                          ? 'Update Task'
-                          : 'Create Task'}
+              <div className="task-list-actions">
+                <button type="button" onClick={openAddTaskPanel}>
+                  Add Task
                 </button>
 
-                {editingTaskId && (
-                    <button type="button" className="secondary-button" onClick={resetForm}>
-                      Cancel Edit
+                <button type="button" className="secondary-button" onClick={openFilterPanel}>
+                  Filter
+                </button>
+
+                <button type="button" className="secondary-button" onClick={refreshAllTaskData}>
+                  Refresh
+                </button>
+              </div>
+            </div>
+
+            {activePanel === 'filter' && (
+                <div className="inline-panel filter-panel">
+                  <div className="inline-panel-header">
+                    <div>
+                      <p className="section-kicker">Filter tasks</p>
+                      <h3>Find the right maintenance work</h3>
+                      <p>Search by keyword, category, status, urgency, or sort order.</p>
+                    </div>
+
+                    <button type="button" className="secondary-button small-button" onClick={closeActivePanel}>
+                      Close
                     </button>
-                )}
-              </div>
-            </form>
-          </section>
+                  </div>
 
-          <section className="card">
-            <h2>Search and Filter Tasks</h2>
-            <p className="section-description">
-              Narrow the task list by keyword, category, status, urgency, or sort order.
-            </p>
+                  <form className="task-form refined-task-form compact-filter-form" onSubmit={handleSearchTasks}>
+                    <div className="form-row">
+                      <label>
+                        Keyword
+                        <input
+                            type="text"
+                            name="keyword"
+                            value={searchForm.keyword}
+                            onChange={handleSearchInputChange}
+                            placeholder="Search name, category, description, or notes"
+                        />
+                      </label>
 
-            <form className="task-form" onSubmit={handleSearchTasks}>
-              <div className="form-row">
-                <label>
-                  Keyword
-                  <input
-                      type="text"
-                      name="keyword"
-                      value={searchForm.keyword}
-                      onChange={handleSearchInputChange}
-                      placeholder="Search name, category, description, or notes"
-                  />
-                </label>
+                      <label>
+                        Category
+                        <input
+                            type="text"
+                            name="category"
+                            value={searchForm.category}
+                            onChange={handleSearchInputChange}
+                            placeholder="Example: HVAC"
+                        />
+                      </label>
+                    </div>
 
-                <label>
-                  Category
-                  <input
-                      type="text"
-                      name="category"
-                      value={searchForm.category}
-                      onChange={handleSearchInputChange}
-                      placeholder="Example: HVAC"
-                  />
-                </label>
-              </div>
+                    <div className="form-row">
+                      <label>
+                        Status
+                        <select
+                            name="status"
+                            value={searchForm.status}
+                            onChange={handleSearchInputChange}
+                        >
+                          <option value="">Any Status</option>
+                          <option value="OPEN">Open</option>
+                          <option value="IN_PROGRESS">In Progress</option>
+                          <option value="COMPLETED">Completed</option>
+                        </select>
+                      </label>
 
-              <div className="form-row">
-                <label>
-                  Status
-                  <select
-                      name="status"
-                      value={searchForm.status}
-                      onChange={handleSearchInputChange}
-                  >
-                    <option value="">Any Status</option>
-                    <option value="OPEN">Open</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="COMPLETED">Completed</option>
-                  </select>
-                </label>
+                      <label>
+                        Urgency
+                        <select
+                            name="urgencyLevel"
+                            value={searchForm.urgencyLevel}
+                            onChange={handleSearchInputChange}
+                        >
+                          <option value="">Any Urgency</option>
+                          <option value="LOW">Low</option>
+                          <option value="MEDIUM">Medium</option>
+                          <option value="HIGH">High</option>
+                        </select>
+                      </label>
+                    </div>
 
-                <label>
-                  Urgency
-                  <select
-                      name="urgencyLevel"
-                      value={searchForm.urgencyLevel}
-                      onChange={handleSearchInputChange}
-                  >
-                    <option value="">Any Urgency</option>
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                  </select>
-                </label>
-              </div>
+                    <label>
+                      Sort By
+                      <select
+                          name="sortBy"
+                          value={searchForm.sortBy}
+                          onChange={handleSearchInputChange}
+                      >
+                        <option value="dueDate">Due Date</option>
+                        <option value="taskName">Task Name</option>
+                        <option value="category">Category</option>
+                        <option value="estimatedCost">Estimated Cost</option>
+                        <option value="urgencyLevel">Urgency</option>
+                        <option value="status">Status</option>
+                      </select>
+                    </label>
 
-              <label>
-                Sort By
-                <select
-                    name="sortBy"
-                    value={searchForm.sortBy}
-                    onChange={handleSearchInputChange}
-                >
-                  <option value="dueDate">Due Date</option>
-                  <option value="taskName">Task Name</option>
-                  <option value="category">Category</option>
-                  <option value="estimatedCost">Estimated Cost</option>
-                  <option value="urgencyLevel">Urgency</option>
-                  <option value="status">Status</option>
-                </select>
-              </label>
+                    <div className="button-row">
+                      <button type="submit">Apply Filters</button>
+                      <button type="button" className="secondary-button" onClick={handleClearSearch}>
+                        Clear Filters
+                      </button>
+                    </div>
+                  </form>
+                </div>
+            )}
 
-              <div className="button-row">
-                <button type="submit">Search Tasks</button>
-                <button type="button" className="secondary-button" onClick={handleClearSearch}>
-                  Clear Search
-                </button>
-              </div>
-            </form>
-          </section>
+            {activePanel === 'add' && (
+                <div className="inline-panel task-editor-inline-panel">
+                  <div className="inline-panel-header">
+                    <div>
+                      <p className="section-kicker">{editingTaskId ? 'Update task' : 'New task'}</p>
+                      <h3>{editingTaskId ? 'Edit Maintenance Task' : 'Add Maintenance Task'}</h3>
+                      <p>
+                        Capture the work, priority, due date, estimated cost, and notes for this maintenance item.
+                      </p>
+                    </div>
 
-          <section className="card">
-            <div className="section-header">
-              <div>
-                <h2>Maintenance Task List</h2>
-                <p className="section-description">
-                  Tasks shown here belong to the currently signed-in user.
-                </p>
-              </div>
+                    <button type="button" className="secondary-button small-button" onClick={closeActivePanel}>
+                      Close
+                    </button>
+                  </div>
 
-              <button type="button" className="secondary-button" onClick={refreshAllTaskData}>
-                Refresh
-              </button>
-            </div>
+                  {editingTaskId && (
+                      <span className="edit-mode-pill">Editing selected task</span>
+                  )}
+
+                  <form className="task-form refined-task-form" onSubmit={handleSubmitTask}>
+                    <div className="form-section">
+                      <div className="form-section-heading">
+                        <span>01</span>
+                        <div>
+                          <h3>Task details</h3>
+                          <p>Name the maintenance item and assign it to a category.</p>
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <label>
+                          Task Name <span className="required-marker">Required</span>
+                          <input
+                              type="text"
+                              name="taskName"
+                              value={taskForm.taskName}
+                              onChange={handleInputChange}
+                              placeholder="Replace HVAC filter"
+                              required
+                          />
+                        </label>
+
+                        <label>
+                          Category <span className="required-marker">Required</span>
+                          <input
+                              type="text"
+                              name="category"
+                              value={taskForm.category}
+                              onChange={handleInputChange}
+                              placeholder="HVAC, Plumbing, Electrical"
+                              required
+                          />
+                        </label>
+                      </div>
+
+                      <label>
+                        Description
+                        <textarea
+                            name="description"
+                            value={taskForm.description}
+                            onChange={handleInputChange}
+                            rows="3"
+                            placeholder="Add context about what needs to be inspected, repaired, or replaced."
+                        />
+                      </label>
+                    </div>
+
+                    <div className="form-section">
+                      <div className="form-section-heading">
+                        <span>02</span>
+                        <div>
+                          <h3>Schedule and priority</h3>
+                          <p>Set timing, estimated cost, urgency, and current status.</p>
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <label>
+                          Due Date <span className="required-marker">Required</span>
+                          <input
+                              type="date"
+                              name="dueDate"
+                              value={taskForm.dueDate}
+                              onChange={handleInputChange}
+                              required
+                          />
+                        </label>
+
+                        <label>
+                          Estimated Cost <span className="required-marker">Required</span>
+                          <input
+                              type="number"
+                              name="estimatedCost"
+                              value={taskForm.estimatedCost}
+                              onChange={handleInputChange}
+                              min="0"
+                              step="0.01"
+                              placeholder="150.00"
+                              required
+                          />
+                        </label>
+                      </div>
+
+                      <div className="form-row">
+                        <label>
+                          Urgency
+                          <select
+                              name="urgencyLevel"
+                              value={taskForm.urgencyLevel}
+                              onChange={handleInputChange}
+                          >
+                            <option value="LOW">Low</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="HIGH">High</option>
+                          </select>
+                        </label>
+
+                        <label>
+                          Status
+                          <select
+                              name="status"
+                              value={taskForm.status}
+                              onChange={handleInputChange}
+                          >
+                            <option value="OPEN">Open</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="COMPLETED">Completed</option>
+                          </select>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="form-section">
+                      <div className="form-section-heading">
+                        <span>03</span>
+                        <div>
+                          <h3>Notes</h3>
+                          <p>Add optional details for future reference.</p>
+                        </div>
+                      </div>
+
+                      <label>
+                        Notes
+                        <textarea
+                            name="notes"
+                            value={taskForm.notes}
+                            onChange={handleInputChange}
+                            rows="2"
+                            placeholder="Add warranty details, parts needed, contractor notes, or inspection reminders."
+                        />
+                      </label>
+                    </div>
+
+                    <div className="form-action-bar">
+                      <button type="submit" disabled={submittingTask}>
+                        {submittingTask
+                            ? 'Saving Task...'
+                            : editingTaskId
+                                ? 'Update Task'
+                                : 'Create Task'}
+                      </button>
+
+                      <button type="button" className="secondary-button" onClick={closeActivePanel}>
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+            )}
 
             {loadingTasks && <p>Loading tasks...</p>}
 
             {!loadingTasks && tasks.length === 0 && (
                 <div className="empty-state">
                   <strong>No maintenance tasks yet.</strong>
-                  <p>Create your first task using the form above.</p>
+                  <p>Create your first task to start tracking repairs, projects, and recurring home maintenance work.</p>
+                  <button type="button" onClick={openAddTaskPanel}>
+                    Add Your First Task
+                  </button>
                 </div>
             )}
 
@@ -709,14 +763,14 @@ function App() {
                           <td>{task.dueDate}</td>
                           <td>${Number(task.estimatedCost).toFixed(2)}</td>
                           <td>
-                        <span className={`badge urgency-${task.urgencyLevel.toLowerCase()}`}>
-                          {task.urgencyLevel}
-                        </span>
+                <span className={`badge urgency-${task.urgencyLevel.toLowerCase()}`}>
+                  {task.urgencyLevel}
+                </span>
                           </td>
                           <td>
-                        <span className={`badge status-${task.status.toLowerCase().replace('_', '-')}`}>
-                          {task.status.replace('_', ' ')}
-                        </span>
+                <span className={`badge status-${task.status.toLowerCase().replace('_', '-')}`}>
+                  {task.status.replace('_', ' ')}
+                </span>
                           </td>
                           <td>
                             <div className="table-actions">
