@@ -27,19 +27,19 @@ function App() {
   const [currentUser, setCurrentUser] = useState(getCurrentUser());
   const [authView, setAuthView] = useState('login');
 
-  const [healthStatus, setHealthStatus] = useState(null);
+
   const [tasks, setTasks] = useState([]);
   const [dashboardSummary, setDashboardSummary] = useState(null);
-  const [maintenanceReport, setMaintenanceReport] = useState(null);
+
 
   const [taskForm, setTaskForm] = useState(initialTaskForm);
   const [searchForm, setSearchForm] = useState(initialSearchForm);
   const [editingTaskId, setEditingTaskId] = useState(null);
 
-  const [loadingHealth, setLoadingHealth] = useState(true);
+
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [loadingDashboard, setLoadingDashboard] = useState(true);
-  const [loadingReport, setLoadingReport] = useState(true);
+
   const [submittingTask, setSubmittingTask] = useState(false);
 
   const [errorMessage, setErrorMessage] = useState('');
@@ -50,10 +50,8 @@ function App() {
       return;
     }
 
-    fetchHealthStatus();
     fetchTasks();
     fetchDashboardSummary();
-    fetchMaintenanceReport();
   }, [currentUser]);
 
   function handleAuthSuccess(authResponse) {
@@ -74,10 +72,10 @@ function App() {
     setCurrentUser(null);
     setAuthView('login');
 
-    setHealthStatus(null);
+
     setTasks([]);
     setDashboardSummary(null);
-    setMaintenanceReport(null);
+
     setTaskForm(initialTaskForm);
     setSearchForm(initialSearchForm);
     setEditingTaskId(null);
@@ -86,19 +84,6 @@ function App() {
     setSuccessMessage('');
   }
 
-  async function fetchHealthStatus() {
-    try {
-      setLoadingHealth(true);
-      const data = await apiRequest('/api/health');
-      setHealthStatus(data);
-    } catch (error) {
-      setErrorMessage(
-          'Unable to connect to the backend. Make sure the Spring Boot server is running on port 8080.'
-      );
-    } finally {
-      setLoadingHealth(false);
-    }
-  }
 
   async function fetchTasks() {
     try {
@@ -124,22 +109,11 @@ function App() {
     }
   }
 
-  async function fetchMaintenanceReport() {
-    try {
-      setLoadingReport(true);
-      const data = await apiRequest('/api/tasks/report');
-      setMaintenanceReport(data);
-    } catch (error) {
-      setErrorMessage('Unable to load maintenance report from the backend.');
-    } finally {
-      setLoadingReport(false);
-    }
-  }
+
 
   async function refreshAllTaskData() {
     await fetchTasks();
     await fetchDashboardSummary();
-    await fetchMaintenanceReport();
   }
 
   function handleInputChange(event) {
@@ -366,55 +340,40 @@ function App() {
         </header>
 
         <main className="app-container">
-          <section className="page-header">
+          <section className="page-header warm-hero">
             <div>
-              <p className="eyebrow">Portfolio Project</p>
-              <h1>Home maintenance, organized by priority.</h1>
+              <p className="eyebrow">HomeCare Tracker</p>
+              <h1>Keep up with the work your home needs.</h1>
               <p className="hero-description">
-                Track recurring work, estimated costs, due dates, urgency, and completion status from one secure dashboard.
+                Plan repairs, track maintenance tasks, estimate costs, and stay ahead of small issues before they become expensive problems.
               </p>
+
+              <div className="hero-highlights">
+                <span>DIY planning</span>
+                <span>Repair notes</span>
+                <span>Cost tracking</span>
+                <span>Priority reminders</span>
+              </div>
             </div>
 
-            <div className="hero-callout">
-              <span className="label">Authenticated workspace</span>
-              <strong>User-specific tasks</strong>
-              <p>Only your maintenance tasks are shown after login.</p>
+            <div className="hero-callout warm-callout">
+              <span className="label">Today’s focus</span>
+              <strong>Start with what matters most.</strong>
+              <p>Review overdue, high-priority, and upcoming maintenance work first.</p>
             </div>
           </section>
 
-          <section className="status-panel card">
-            <div className="section-header">
-              <h2>Backend Connection</h2>
-              <button type="button" className="secondary-button" onClick={fetchHealthStatus}>
-                Check Status
-              </button>
-            </div>
-
-            {loadingHealth && <p>Checking backend connection...</p>}
-
-            {!loadingHealth && healthStatus && (
-                <div className="status-grid">
-                  <div>
-                    <span className="label">Backend Status</span>
-                    <strong>{healthStatus.status}</strong>
-                  </div>
-                  <div>
-                    <span className="label">Application</span>
-                    <strong>{healthStatus.application}</strong>
-                  </div>
-                </div>
-            )}
-          </section>
 
           {errorMessage && <div className="alert error-message">{errorMessage}</div>}
           {successMessage && <div className="alert success-message">{successMessage}</div>}
 
-          <section className="card">
-            <div className="section-header">
+          <section className="card dashboard-section">
+            <div className="section-header refined-section-header">
               <div>
-                <h2>Dashboard Summary</h2>
+                <p className="section-kicker">Overview</p>
+                <h2>Maintenance Dashboard</h2>
                 <p className="section-description">
-                  A quick snapshot of active, completed, overdue, and estimated open-cost maintenance work.
+                  A focused view of current maintenance work, completion progress, overdue items, and open estimated cost.
                 </p>
               </div>
             </div>
@@ -422,132 +381,186 @@ function App() {
             {loadingDashboard && <p>Loading dashboard summary...</p>}
 
             {!loadingDashboard && dashboardSummary && (
-                <div className="dashboard-grid">
-                  <div className="metric-card">
-                    <span className="label">Open / Active Tasks</span>
+                <div className="dashboard-grid refined-dashboard-grid">
+                  <div className="metric-card refined-metric-card">
+                    <span className="metric-label">Open Tasks</span>
                     <strong>{dashboardSummary.openTasks}</strong>
+                    <p>Active maintenance items that still need attention.</p>
                   </div>
-                  <div className="metric-card">
-                    <span className="label">Completed Tasks</span>
+
+                  <div className="metric-card refined-metric-card">
+                    <span className="metric-label">Completed</span>
                     <strong>{dashboardSummary.completedTasks}</strong>
+                    <p>Tasks marked complete in this workspace.</p>
                   </div>
-                  <div className="metric-card">
-                    <span className="label">Overdue Tasks</span>
+
+                  <div className="metric-card refined-metric-card">
+                    <span className="metric-label">Overdue</span>
                     <strong>{dashboardSummary.overdueTasks}</strong>
+                    <p>Past-due items that should be reviewed first.</p>
                   </div>
-                  <div className="metric-card">
-                    <span className="label">Estimated Open Cost</span>
+
+                  <div className="metric-card refined-metric-card cost-card">
+                    <span className="metric-label">Open Cost</span>
                     <strong>
                       ${Number(dashboardSummary.totalEstimatedOpenCost).toFixed(2)}
                     </strong>
+                    <p>Estimated cost remaining across open work.</p>
                   </div>
                 </div>
             )}
           </section>
 
-          <section className="card">
-            <h2>{editingTaskId ? 'Edit Maintenance Task' : 'Add Maintenance Task'}</h2>
+          <section className="card task-editor-card">
+            <div className="section-header refined-section-header">
+              <div>
+                <p className="section-kicker">{editingTaskId ? 'Update task' : 'New task'}</p>
+                <h2>{editingTaskId ? 'Edit Maintenance Task' : 'Add Maintenance Task'}</h2>
+                <p className="section-description">
+                  Capture the work, priority, due date, and estimated cost in a structured maintenance record.
+                </p>
+              </div>
 
-            <form className="task-form" onSubmit={handleSubmitTask}>
-              <div className="form-row">
-                <label>
-                  Task Name
-                  <input
-                      type="text"
-                      name="taskName"
-                      value={taskForm.taskName}
-                      onChange={handleInputChange}
-                      required
-                  />
-                </label>
+              {editingTaskId && (
+                  <span className="edit-mode-pill">Editing selected task</span>
+              )}
+            </div>
+
+            <form className="task-form refined-task-form" onSubmit={handleSubmitTask}>
+              <div className="form-section">
+                <div className="form-section-heading">
+                  <span>01</span>
+                  <div>
+                    <h3>Task details</h3>
+                    <p>Name the maintenance item and assign it to a category.</p>
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <label>
+                    Task Name <span className="required-marker">Required</span>
+                    <input
+                        type="text"
+                        name="taskName"
+                        value={taskForm.taskName}
+                        onChange={handleInputChange}
+                        placeholder="Replace HVAC filter"
+                        required
+                    />
+                  </label>
+
+                  <label>
+                    Category <span className="required-marker">Required</span>
+                    <input
+                        type="text"
+                        name="category"
+                        value={taskForm.category}
+                        onChange={handleInputChange}
+                        placeholder="HVAC, Plumbing, Electrical"
+                        required
+                    />
+                  </label>
+                </div>
 
                 <label>
-                  Category
-                  <input
-                      type="text"
-                      name="category"
-                      value={taskForm.category}
+                  Description
+                  <textarea
+                      name="description"
+                      value={taskForm.description}
                       onChange={handleInputChange}
-                      required
+                      rows="3"
+                      placeholder="Add context about what needs to be inspected, repaired, or replaced."
                   />
                 </label>
               </div>
 
-              <label>
-                Description
-                <textarea
-                    name="description"
-                    value={taskForm.description}
-                    onChange={handleInputChange}
-                    rows="3"
-                />
-              </label>
+              <div className="form-section">
+                <div className="form-section-heading">
+                  <span>02</span>
+                  <div>
+                    <h3>Schedule and priority</h3>
+                    <p>Set timing, estimated cost, urgency, and current status.</p>
+                  </div>
+                </div>
 
-              <div className="form-row">
-                <label>
-                  Due Date
-                  <input
-                      type="date"
-                      name="dueDate"
-                      value={taskForm.dueDate}
-                      onChange={handleInputChange}
-                      required
-                  />
-                </label>
+                <div className="form-row">
+                  <label>
+                    Due Date <span className="required-marker">Required</span>
+                    <input
+                        type="date"
+                        name="dueDate"
+                        value={taskForm.dueDate}
+                        onChange={handleInputChange}
+                        required
+                    />
+                  </label>
+
+                  <label>
+                    Estimated Cost <span className="required-marker">Required</span>
+                    <input
+                        type="number"
+                        name="estimatedCost"
+                        value={taskForm.estimatedCost}
+                        onChange={handleInputChange}
+                        min="0"
+                        step="0.01"
+                        placeholder="150.00"
+                        required
+                    />
+                  </label>
+                </div>
+
+                <div className="form-row">
+                  <label>
+                    Urgency
+                    <select
+                        name="urgencyLevel"
+                        value={taskForm.urgencyLevel}
+                        onChange={handleInputChange}
+                    >
+                      <option value="LOW">Low</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="HIGH">High</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    Status
+                    <select
+                        name="status"
+                        value={taskForm.status}
+                        onChange={handleInputChange}
+                    >
+                      <option value="OPEN">Open</option>
+                      <option value="IN_PROGRESS">In Progress</option>
+                      <option value="COMPLETED">Completed</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+
+              <div className="form-section">
+                <div className="form-section-heading">
+                  <span>03</span>
+                  <div>
+                    <h3>Notes</h3>
+                    <p>Add optional details for future reference.</p>
+                  </div>
+                </div>
 
                 <label>
-                  Estimated Cost
-                  <input
-                      type="number"
-                      name="estimatedCost"
-                      value={taskForm.estimatedCost}
+                  Notes
+                  <textarea
+                      name="notes"
+                      value={taskForm.notes}
                       onChange={handleInputChange}
-                      min="0"
-                      step="0.01"
-                      required
+                      rows="2"
+                      placeholder="Add warranty details, parts needed, contractor notes, or inspection reminders."
                   />
                 </label>
               </div>
 
-              <div className="form-row">
-                <label>
-                  Urgency
-                  <select
-                      name="urgencyLevel"
-                      value={taskForm.urgencyLevel}
-                      onChange={handleInputChange}
-                  >
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                  </select>
-                </label>
-
-                <label>
-                  Status
-                  <select
-                      name="status"
-                      value={taskForm.status}
-                      onChange={handleInputChange}
-                  >
-                    <option value="OPEN">Open</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="COMPLETED">Completed</option>
-                  </select>
-                </label>
-              </div>
-
-              <label>
-                Notes
-                <textarea
-                    name="notes"
-                    value={taskForm.notes}
-                    onChange={handleInputChange}
-                    rows="2"
-                />
-              </label>
-
-              <div className="button-row">
+              <div className="form-action-bar">
                 <button type="submit" disabled={submittingTask}>
                   {submittingTask
                       ? 'Saving Task...'
@@ -741,54 +754,6 @@ function App() {
             )}
           </section>
 
-          <section className="card">
-            <div className="section-header">
-              <div>
-                <h2>Maintenance Task Report</h2>
-                {maintenanceReport && (
-                    <p className="report-meta">
-                      {maintenanceReport.title} | Generated: {maintenanceReport.generatedAt}
-                    </p>
-                )}
-              </div>
-
-              <button type="button" className="secondary-button" onClick={fetchMaintenanceReport}>
-                Refresh Report
-              </button>
-            </div>
-
-            {loadingReport && <p>Loading maintenance report...</p>}
-
-            {!loadingReport && maintenanceReport && maintenanceReport.rows.length === 0 && (
-                <div className="empty-state">
-                  <strong>No report rows are available.</strong>
-                  <p>Create maintenance tasks to populate this report.</p>
-                </div>
-            )}
-
-            {!loadingReport && maintenanceReport && maintenanceReport.rows.length > 0 && (
-                <div className="table-wrapper">
-                  <table>
-                    <thead>
-                    <tr>
-                      {maintenanceReport.columns.map((column) => (
-                          <th key={column}>{column}</th>
-                      ))}
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {maintenanceReport.rows.map((row, rowIndex) => (
-                        <tr key={`${row['Task Name']}-${rowIndex}`}>
-                          {maintenanceReport.columns.map((column) => (
-                              <td key={`${column}-${rowIndex}`}>{row[column]}</td>
-                          ))}
-                        </tr>
-                    ))}
-                    </tbody>
-                  </table>
-                </div>
-            )}
-          </section>
         </main>
       </div>
   );
