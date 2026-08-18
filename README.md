@@ -40,9 +40,6 @@ http://victor-task4-home-maintenance.duckdns.org/api/health
 
 ![Maintenance Report](docs/portfolio-screenshots/05-maintenance-report.png)
 
-### Mobile View
-
-![Mobile View](docs/portfolio-screenshots/05-mobile-view.png)
 
 ## Current Features
 
