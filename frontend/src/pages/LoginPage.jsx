@@ -36,47 +36,87 @@ export default function LoginPage({ onLogin, onSwitchToRegister }) {
 
     return (
         <main className="auth-page">
-            <section className="auth-card">
-                <h1>Log in to HomeCare Tracker</h1>
-                <p>Access your personal maintenance dashboard.</p>
+            <section className="auth-layout">
+                <div className="auth-intro-panel">
+                    <span className="brand-mark auth-brand-mark">HC</span>
 
-                {errorMessage && (
-                    <div className="error-message">
-                        {errorMessage}
+                    <p className="eyebrow">HomeCare Tracker</p>
+
+                    <h1>Organize home maintenance before it becomes urgent.</h1>
+
+                    <p className="hero-description">
+                        Sign in to manage repair tasks, due dates, estimated costs, urgency levels,
+                        and maintenance reports from a secure personal workspace.
+                    </p>
+
+                    <div className="auth-feature-list">
+                        <div>
+                            <strong>Private task data</strong>
+                            <span>Tasks are tied to your account after login.</span>
+                        </div>
+
+                        <div>
+                            <strong>Priority tracking</strong>
+                            <span>See open, completed, overdue, and high-urgency work.</span>
+                        </div>
+
+                        <div>
+                            <strong>Maintenance reports</strong>
+                            <span>Review task history and estimated cost data.</span>
+                        </div>
                     </div>
-                )}
+                </div>
 
-                <form onSubmit={handleSubmit} className="auth-form">
-                    <label>
-                        Email
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                        />
-                    </label>
+                <section className="auth-card">
+                    <div className="auth-card-header">
+                        <p className="eyebrow">Welcome back</p>
+                        <h2>Log in</h2>
+                        <p>Access your personal maintenance dashboard.</p>
+                    </div>
 
-                    <label>
-                        Password
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            required
-                        />
-                    </label>
+                    {errorMessage && (
+                        <div className="alert error-message">
+                            {errorMessage}
+                        </div>
+                    )}
 
-                    <button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? 'Logging in...' : 'Log in'}
-                    </button>
-                </form>
+                    <form onSubmit={handleSubmit} className="auth-form">
+                        <label>
+                            Email
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="you@example.com"
+                                required
+                            />
+                        </label>
 
-                <button type="button" className="link-button" onClick={onSwitchToRegister}>
-                    Need an account? Register
-                </button>
+                        <label>
+                            Password
+                            <input
+                                type="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="Enter your password"
+                                required
+                            />
+                        </label>
+
+                        <button type="submit" disabled={isSubmitting} className="full-width-button">
+                            {isSubmitting ? 'Logging in...' : 'Log in'}
+                        </button>
+                    </form>
+
+                    <div className="auth-switch-panel">
+                        <span>Need an account?</span>
+                        <button type="button" className="link-button" onClick={onSwitchToRegister}>
+                            Create one
+                        </button>
+                    </div>
+                </section>
             </section>
         </main>
     );
