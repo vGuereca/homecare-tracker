@@ -195,9 +195,9 @@ button:disabled {
 
 .app-container {
     min-height: 100vh;
-    max-width: 1180px;
-    margin: 0 auto;
     padding: 32px;
+    max-width: 1360px;
+    margin: 0 auto;
 }
 
 .page-header {
@@ -646,6 +646,8 @@ button:disabled {
     align-self: center;
 }
 
+
+
 /* =========================================================
    9. Tables / Badges / Row Actions
    ========================================================= */
@@ -657,8 +659,8 @@ button:disabled {
 
 table {
     width: 100%;
-    min-width: 920px;
     border-collapse: collapse;
+    min-width: 1040px;
 }
 
 th,
@@ -667,6 +669,12 @@ td {
     padding: 14px;
     text-align: left;
     vertical-align: top;
+}
+
+th:last-child,
+td:last-child {
+    width: 240px;
+    min-width: 240px;
 }
 
 th {
@@ -681,8 +689,15 @@ td {
 
 .table-actions {
     display: flex;
+    align-items: center;
+    justify-content: flex-start;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    min-width: 210px;
+}
+
+.table-actions button {
+    white-space: nowrap;
 }
 
 .table-actions .small-button {
@@ -759,6 +774,122 @@ td {
     border: 1px solid #d8dfc8;
     background: #f3f6ed;
     color: #4f5f3a;
+}
+
+/* updates style */
+
+.task-name-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 220px;
+}
+
+.task-name-cell strong {
+    color: #2f352a;
+    font-size: 1rem;
+    line-height: 1.35;
+}
+
+.task-name-cell span {
+    max-width: 360px;
+    color: #6b6257;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.category-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 7px 11px;
+    background: #f4eee5;
+    color: #5f574f;
+    border: 1px solid #e5d9c8;
+    font-size: 0.84rem;
+    font-weight: 800;
+}
+
+.date-cell,
+.cost-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 112px;
+}
+
+.date-cell strong,
+.cost-cell strong {
+    color: #2f352a;
+    font-size: 0.98rem;
+}
+
+.date-cell span,
+.cost-cell span {
+    color: #8a8176;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.overdue-row {
+    background: #fff8f4;
+}
+
+.overdue-note {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 8px;
+    background: #f8e9e2;
+    color: #8a3f2d;
+    border: 1px solid #e6c0b2;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.task-empty-state {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+    background: #fffaf3;
+    border-color: #e5d9c8;
+}
+
+.empty-state-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: #f3f6ed;
+    color: #4f5f3a;
+    border: 1px solid #d8dfc8;
+    font-weight: 900;
+}
+
+.empty-state-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.empty-state-suggestions span {
+    display: inline-flex;
+    border-radius: 999px;
+    padding: 7px 10px;
+    background: #ffffff;
+    color: #5f574f;
+    border: 1px solid #eadfce;
+    font-size: 0.84rem;
+    font-weight: 700;
 }
 
 /* =========================================================
@@ -934,6 +1065,16 @@ td {
         align-items: flex-start;
     }
 
+    .table-actions {
+        min-width: 0;
+        flex-wrap: wrap;
+    }
+
+    th:last-child,
+    td:last-child {
+        min-width: 180px;
+    }
+
     .task-list-header {
         grid-template-columns: 1fr;
     }
@@ -997,5 +1138,13 @@ td {
 
     .auth-switch-panel {
         flex-direction: column;
+    }
+
+    .task-empty-state {
+        grid-template-columns: 1fr;
+    }
+
+    .task-name-cell {
+        min-width: 180px;
     }
 }

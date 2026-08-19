@@ -307,6 +307,37 @@ function App() {
     setEditingTaskId(null);
   }
 
+  function formatCurrency(value) {
+    return `$${Number(value || 0).toFixed(2)}`;
+  }
+
+  function formatTaskDate(dateValue) {
+    if (!dateValue) {
+      return 'No due date';
+    }
+
+    const date = new Date(`${dateValue}T00:00:00`);
+
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(date);
+  }
+
+  function isTaskOverdue(task) {
+    if (!task.dueDate || task.status === 'COMPLETED') {
+      return false;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const dueDate = new Date(`${task.dueDate}T00:00:00`);
+
+    return dueDate < today;
+  }
+
   function openAddTaskPanel() {
     resetForm();
     setActivePanel('add');
@@ -449,7 +480,7 @@ function App() {
               </div>
 
               <div className="task-list-actions">
-                <button type="button" onClick={openAddTaskPanel}>
+                <button type="button" className="secondary-button" onClick={openAddTaskPanel}>
                   Add Task
                 </button>
 
@@ -732,12 +763,28 @@ function App() {
             {loadingTasks && <p>Loading tasks...</p>}
 
             {!loadingTasks && tasks.length === 0 && (
-                <div className="empty-state">
-                  <strong>No maintenance tasks yet.</strong>
-                  <p>Create your first task to start tracking repairs, projects, and recurring home maintenance work.</p>
-                  <button type="button" onClick={openAddTaskPanel}>
-                    Add Your First Task
-                  </button>
+                <div className="empty-state task-empty-state">
+                  <div>
+                    <span className="empty-state-icon">✓</span>
+                  </div>
+
+                  <div>
+                    <strong>No maintenance tasks yet.</strong>
+                    <p>
+                      Start by adding a repair, inspection, seasonal task, or DIY project you want to keep track of.
+                    </p>
+
+                    <div className="empty-state-suggestions">
+                      <span>HVAC filter</span>
+                      <span>Water heater flush</span>
+                      <span>Smoke detector batteries</span>
+                      <span>Roof inspection</span>
+                    </div>
+
+                    <button type="button" onClick={openAddTaskPanel}>
+                      Add Your First Task
+                    </button>
+                  </div>
                 </div>
             )}
 
@@ -756,52 +803,86 @@ function App() {
                     </tr>
                     </thead>
                     <tbody>
-                    {tasks.map((task) => (
-                        <tr key={task.id}>
-                          <td>{task.taskName}</td>
-                          <td>{task.category}</td>
-                          <td>{task.dueDate}</td>
-                          <td>${Number(task.estimatedCost).toFixed(2)}</td>
-                          <td>
-                <span className={`badge urgency-${task.urgencyLevel.toLowerCase()}`}>
-                  {task.urgencyLevel}
-                </span>
-                          </td>
-                          <td>
-                <span className={`badge status-${task.status.toLowerCase().replace('_', '-')}`}>
-                  {task.status.replace('_', ' ')}
-                </span>
-                          </td>
-                          <td>
-                            <div className="table-actions">
-                              <button
-                                  type="button"
-                                  className="small-button"
-                                  onClick={() => handleEditTask(task)}
-                              >
-                                Edit
-                              </button>
+                    {tasks.map((task) => {
+                      const overdue = isTaskOverdue(task);
 
-                              <button
-                                  type="button"
-                                  className="small-button success-button"
-                                  onClick={() => handleCompleteTask(task.id)}
-                                  disabled={task.status === 'COMPLETED'}
-                              >
-                                Complete
-                              </button>
+                      return (
+                          <tr key={task.id} className={overdue ? 'overdue-row' : ''}>
+                            <td>
+                              <div className="task-name-cell">
+                                <strong>{task.taskName}</strong>
 
-                              <button
-                                  type="button"
-                                  className="small-button danger-button"
-                                  onClick={() => handleDeleteTask(task.id)}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                    ))}
+                                {task.description && (
+                                    <span>{task.description}</span>
+                                )}
+
+                                {overdue && (
+                                    <span className="overdue-note">Overdue</span>
+                                )}
+                              </div>
+                            </td>
+
+                            <td>
+                              <span className="category-pill">{task.category}</span>
+                            </td>
+
+                            <td>
+                              <div className="date-cell">
+                                <strong>{formatTaskDate(task.dueDate)}</strong>
+                                <span>Due date</span>
+                              </div>
+                            </td>
+
+                            <td>
+                              <div className="cost-cell">
+                                <strong>{formatCurrency(task.estimatedCost)}</strong>
+                                <span>Estimated</span>
+                              </div>
+                            </td>
+
+                            <td>
+          <span className={`badge urgency-${task.urgencyLevel.toLowerCase()}`}>
+            {task.urgencyLevel}
+          </span>
+                            </td>
+
+                            <td>
+          <span className={`badge status-${task.status.toLowerCase().replace('_', '-')}`}>
+            {task.status.replace('_', ' ')}
+          </span>
+                            </td>
+
+                            <td>
+                              <div className="table-actions">
+                                <button
+                                    type="button"
+                                    className="small-button"
+                                    onClick={() => handleEditTask(task)}
+                                >
+                                  Edit
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="small-button success-button"
+                                    onClick={() => handleCompleteTask(task.id)}
+                                    disabled={task.status === 'COMPLETED'}
+                                >
+                                  Complete
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="small-button danger-button"
+                                    onClick={() => handleDeleteTask(task.id)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                      );
+                    })}
                     </tbody>
                   </table>
                 </div>
