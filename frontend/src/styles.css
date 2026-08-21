@@ -62,7 +62,7 @@ button {
     border: none;
     border-radius: 12px;
     padding: 13px 18px;
-    background: #243b53;
+    background: #3f4638;
     color: #ffffff;
     font-size: 1rem;
     font-weight: 700;
@@ -70,7 +70,7 @@ button {
 }
 
 button:hover {
-    background: #102a43;
+    background: #838f6d;
 }
 
 button:disabled {
@@ -83,9 +83,9 @@ button:disabled {
 }
 
 .secondary-button:hover {
-    background: #2f352a;
+    background: #838f6d;
 }
-
+/* #2f352a */
 .success-button {
     background: #027a48;
 }
@@ -104,7 +104,7 @@ button:disabled {
 
 .small-button {
     border-radius: 9px;
-    padding: 8px 10px;
+    padding: 13px 18px;
     font-size: 0.85rem;
 }
 
@@ -477,6 +477,87 @@ button:disabled {
    7. Inline Panels: Add Task / Filter
    ========================================================= */
 
+.panel-header-soft {
+    background:
+            radial-gradient(circle at top right, rgba(122, 104, 79, 0.08), transparent 36%),
+            #fffdf8;
+}
+
+.panel-title-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.panel-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    border-radius: 12px;
+    background: #f4eee5;
+    color: #3f4638;
+    border: 1px solid #e5d9c8;
+    font-size: 1.1rem;
+    font-weight: 900;
+}
+
+.panel-status-strip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 24px 18px;
+    color: #6b6257;
+    font-size: 0.9rem;
+}
+
+.panel-status-strip .edit-mode-pill {
+    margin: 0;
+}
+
+.filter-action-bar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 12px;
+}
+
+.panel-action-bar {
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-action-bar > div:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.panel-action-bar strong {
+    color: #2f352a;
+    font-size: 0.98rem;
+}
+
+.panel-action-bar span {
+    color: #6b6257;
+    font-size: 0.9rem;
+}
+
+.panel-action-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.panel-action-buttons button {
+    align-self: center;
+}
+
+
 .inline-panel {
     overflow: hidden;
     margin: 0 0 24px;
@@ -511,8 +592,9 @@ button:disabled {
 }
 
 .compact-filter-form {
-    gap: 18px;
     padding: 24px;
+    gap: 18px;
+    background: #ffffff;
 }
 
 .edit-mode-pill {
@@ -547,8 +629,9 @@ button:disabled {
 }
 
 .form-section {
-    border-top: 1px solid #e4e7ec;
-    padding: 28px 30px;
+    padding: 26px 30px;
+    border-top: 1px solid #eadfce;
+    background: #ffffff;
 }
 
 .form-section-heading {
@@ -563,13 +646,14 @@ button:disabled {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 999px;
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
     background: #f4eee5;
     color: #5f574f;
-    font-size: 0.85rem;
-    font-weight: 800;
+    border: 1px solid #e5d9c8;
+    font-size: 0.8rem;
+    font-weight: 900;
 }
 
 .form-section-heading h3 {
@@ -629,6 +713,7 @@ button:disabled {
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+    margin-top: 12px;
 }
 
 .form-action-bar {
@@ -638,7 +723,7 @@ button:disabled {
     gap: 12px;
     flex-wrap: wrap;
     border-top: 1px solid #e4e7ec;
-    padding: 22px 30px 30px;
+    padding: 20px 30px 20px;
     background: #fbf7f0;
 }
 
@@ -1147,4 +1232,36 @@ td {
     .task-name-cell {
         min-width: 180px;
     }
+    .panel-title-group {
+        flex-direction: column;
+    }
+
+    .panel-status-strip {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 0 22px 18px;
+    }
+
+    .filter-action-bar {
+        flex-direction: column;
+    }
+
+    .filter-action-bar button {
+        width: 100%;
+    }
+
+    .panel-action-bar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .panel-action-buttons {
+        width: 100%;
+        flex-direction: column-reverse;
+    }
+
+    .panel-action-buttons button {
+        width: 100%;
+    }
+
 }

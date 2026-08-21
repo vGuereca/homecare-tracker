@@ -496,11 +496,17 @@ function App() {
 
             {activePanel === 'filter' && (
                 <div className="inline-panel filter-panel">
-                  <div className="inline-panel-header">
-                    <div>
-                      <p className="section-kicker">Filter tasks</p>
-                      <h3>Find the right maintenance work</h3>
-                      <p>Search by keyword, category, status, urgency, or sort order.</p>
+                  <div className="inline-panel-header panel-header-soft">
+                    <div className="panel-title-group">
+                      <span className="panel-icon">⌕</span>
+
+                      <div>
+                        <p className="section-kicker">Filter tasks</p>
+                        <h3>Find the right maintenance work</h3>
+                        <p>
+                          Narrow your list by keyword, category, status, urgency, or sort order.
+                        </p>
+                      </div>
                     </div>
 
                     <button type="button" className="secondary-button small-button" onClick={closeActivePanel}>
@@ -579,7 +585,7 @@ function App() {
                       </select>
                     </label>
 
-                    <div className="button-row">
+                    <div className="filter-action-bar">
                       <button type="submit">Apply Filters</button>
                       <button type="button" className="secondary-button" onClick={handleClearSearch}>
                         Clear Filters
@@ -591,13 +597,19 @@ function App() {
 
             {activePanel === 'add' && (
                 <div className="inline-panel task-editor-inline-panel">
-                  <div className="inline-panel-header">
-                    <div>
-                      <p className="section-kicker">{editingTaskId ? 'Update task' : 'New task'}</p>
-                      <h3>{editingTaskId ? 'Edit Maintenance Task' : 'Add Maintenance Task'}</h3>
-                      <p>
-                        Capture the work, priority, due date, estimated cost, and notes for this maintenance item.
-                      </p>
+                  <div className="inline-panel-header panel-header-soft">
+                    <div className="panel-title-group">
+                      <span className="panel-icon">{editingTaskId ? '✎' : '+'}</span>
+
+                      <div>
+                        <p className="section-kicker">{editingTaskId ? 'Update task' : 'New task'}</p>
+                        <h3>{editingTaskId ? 'Edit Maintenance Task' : 'Add Maintenance Task'}</h3>
+                        <p>
+                          {editingTaskId
+                              ? 'Update the details, timing, priority, or notes for this maintenance item.'
+                              : 'Add a repair, inspection, seasonal reminder, or DIY project to your home maintenance list.'}
+                        </p>
+                      </div>
                     </div>
 
                     <button type="button" className="secondary-button small-button" onClick={closeActivePanel}>
@@ -606,7 +618,10 @@ function App() {
                   </div>
 
                   {editingTaskId && (
-                      <span className="edit-mode-pill">Editing selected task</span>
+                      <div className="panel-status-strip">
+                        <span className="edit-mode-pill">Editing selected task</span>
+                        <span>Save changes or cancel to return to the task list.</span>
+                      </div>
                   )}
 
                   <form className="task-form refined-task-form" onSubmit={handleSubmitTask}>
@@ -743,18 +758,29 @@ function App() {
                       </label>
                     </div>
 
-                    <div className="form-action-bar">
-                      <button type="submit" disabled={submittingTask}>
-                        {submittingTask
-                            ? 'Saving Task...'
-                            : editingTaskId
-                                ? 'Update Task'
-                                : 'Create Task'}
-                      </button>
+                    <div className="form-action-bar panel-action-bar">
+                      <div>
+                        <strong>{editingTaskId ? 'Ready to save changes?' : 'Ready to add this task?'}</strong>
+                        <span>
+      {editingTaskId
+          ? 'Your updates will return you to the task list.'
+          : 'The new task will appear in your maintenance task list.'}
+    </span>
+                      </div>
 
-                      <button type="button" className="secondary-button" onClick={closeActivePanel}>
-                        Cancel
-                      </button>
+                      <div className="panel-action-buttons">
+                        <button type="button" className="secondary-button" onClick={closeActivePanel}>
+                          Cancel
+                        </button>
+
+                        <button type="submit" disabled={submittingTask}>
+                          {submittingTask
+                              ? 'Saving Task...'
+                              : editingTaskId
+                                  ? 'Update Task'
+                                  : 'Create Task'}
+                        </button>
+                      </div>
                     </div>
                   </form>
                 </div>
